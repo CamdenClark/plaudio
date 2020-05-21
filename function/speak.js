@@ -1,5 +1,6 @@
 const textToSpeech = require('@google-cloud/text-to-speech');
 const { Storage } = require('@google-cloud/storage');
+const ffmpeg = require('fluent-ffmpeg');
 
 exports.speak = async pubSubEvent => {
     const client = new textToSpeech.TextToSpeechClient();
@@ -21,15 +22,20 @@ exports.speak = async pubSubEvent => {
 
     try {
         const [response] = await client.synthesizeSpeech(request);
-        const blob = storage.bucket("homophone-test").file(`${id}.mp3`);
+        const bucket = storage.bucket("homophone-test");
+
+        const soundItem = bucket.file('Vivaldi_Sonata_eminor_.mp3').createReadStream();
+
+        const blob = bucket.file(`${id}.mp3`);
         const blobStream = blob.createWriteStream();
+
+        ffmpeg().input(response.audioContent).input(soundItem)
+            .audioCodec('libmp3lame').output(blobStream).run();
 
         blobStream.on('error', (err) => {
             next(err);
             console.log(err);
         });
-
-        blobStream.end(response.audioContent);
     }
     catch (error) {
         console.log(error.message);
