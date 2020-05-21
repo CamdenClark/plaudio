@@ -1,18 +1,15 @@
-const express = require('express');
 const textToSpeech = require('@google-cloud/text-to-speech');
 const { Storage } = require('@google-cloud/storage');
 
-const app = express();
-
-app.get('/', (req, res) => {
-    res.send('Hello from App Engine!');
-});
-
-app.get('/posts', async (req, res) => {
+exports.speak = async pubSubEvent => {
     const client = new textToSpeech.TextToSpeechClient();
     const storage = new Storage();
+    const { text } = JSON.parse(
+        Buffer.from(pubSubEvent.data, 'base64').toString()
+    );
+
     const request = {
-        input: { text: 'Google cloud is synthesizing some text.' },
+        input: { text: text },
         voice: { languageCode: 'en-US', ssmlGender: 'NEUTRAL' },
         audioConfig: { audioEncoding: 'MP3' },
     };
@@ -27,20 +24,9 @@ app.get('/posts', async (req, res) => {
             console.log(err);
         });
 
-        blobStream.on('finish', () => {
-            const publicUrl = 'https://storage.googleapis.com/homophone-test/' + blob.name;
-            res.status(200).send(publicUrl);
-        });
-
         blobStream.end(response.audioContent);
     }
     catch (error) {
         console.log(error.message);
     }
-});
-
-// Listen to the App Engine-specified port, or 8080 otherwise
-const PORT = process.env.PORT || 8080;
-app.listen(PORT, () => {
-    console.log(`Server listening on port ${PORT}...`);
-});
+};
