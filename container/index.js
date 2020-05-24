@@ -6,39 +6,47 @@ const bodyParser = require('body-parser');
 const { Storage } = require('@google-cloud/storage');
 const textToSpeech = require('@google-cloud/text-to-speech');
 
+const storage = new Storage();
+const client = new textToSpeech.TextToSpeechClient();
+
 const app = express();
 app.use(bodyParser.json());
 
+const replaceSoundEmojis = (text) =>
+    text.replace('metalGearAlert',
+        `<audio src="https://www.myinstants.com/media/sounds/tindeck_1.mp3">
+        metalGearAlert
+        </audio>`);
+
+const getSSML = ({ userId, text }) =>
+    `<speak>User ${userId} says, ${replaceSoundEmojis(text)}</speak>`;
+
+
 app.post('/', async (req, res) => {
-    const storage = new Storage();
-    const client = new textToSpeech.TextToSpeechClient();
-    const { id, text, username } = JSON.parse(
+    const { soundId, text, userId } = JSON.parse(
         Buffer.from(req.body.message.data, 'base64').toString()
     );
     const request = {
         input: {
-            ssml: `<speak>User ${username} says, ${text}
-        <audio src="https://www.myinstants.com/media/sounds/tindeck_1.mp3">
-            metalGearAlert
-        </audio> 
-        </speak>` },
+            ssml: getSSML({ text, userId })
+        },
         voice: { languageCode: 'en-US', ssmlGender: 'NEUTRAL' },
         audioConfig: { audioEncoding: 'MP3' },
     };
     const writeFile = util.promisify(fs.writeFile);
 
     const [response] = await client.synthesizeSpeech(request);
-    console.log(`Synthesized speech for ${id}`)
-    await writeFile(`${id}-tts.mp3`, response.audioContent, 'binary');
-    console.log(`Saved synthesized speech for ${id}`)
+    console.log(`Synthesized speech for ${soundId}`);
+    await writeFile(`${soundId}-tts.mp3`, response.audioContent, 'binary');
+    console.log(`Saved synthesized speech for ${soundId}`);
     const bucket = storage.bucket('homophone-test');
     await bucket.file('flac_sample.flac').download({ destination: `flac_sample.flac` });
-    console.log(`Got file read stream`)
+    console.log(`Saved file used for synthesis`);
 
     await new Promise((resolve, reject) => {
         try {
             ffmpeg()
-                .input(`${id}-tts.mp3`)
+                .input(`${soundId}-tts.mp3`)
                 .input(`flac_sample.flac`)
                 .audioBitrate(256)
                 .on('progress', (progress) => {
@@ -52,7 +60,7 @@ app.post('/', async (req, res) => {
                     console.log(`[ffmpeg] finished`);
                     resolve();
                 })
-                .output(`${id}.mp3`)
+                .output(`${soundId}.mp3`)
                 .complexFilter({
                     filter: 'concat',
                     options: {
@@ -68,7 +76,7 @@ app.post('/', async (req, res) => {
             reject();
         }
     });
-    await bucket.upload(`${id}.mp3`);
+    await bucket.upload(`${soundId}.mp3`);
     res.status(204).send();
 });
 app.listen(8080, '0.0.0.0');

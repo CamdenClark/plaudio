@@ -48,8 +48,8 @@ app.post('/sounds', async (req, res) => {
 
     const buffer = Buffer.from(JSON.stringify({
         text,
-        id: soundId,
-        username: userId
+        soundId,
+        userId
     }));
     topic.publish(buffer);
 
