@@ -32,16 +32,17 @@ app.get('/sounds', async (req, res) => {
 });
 
 app.post('/sounds', async (req, res) => {
-    const { soundId, text, userId } = req.body;
+    const { soundId, text, userId, sourceFile } = req.body;
     console.log(`Creating sound with id ${soundId}, user id ${userId}, and text ${text}.`);
     const document = db.doc(`sounds/${soundId}`);
     await document.set({
         soundId,
         userId,
-        text: text,
+        text,
         createdAt: new Date(Date.now()),
         score: 0,
-        computedScore: 0
+        computedScore: 0,
+        sourceFile: sourceFile || ""
     });
 
     await db.doc(`sounds/${soundId}/votes/${userId}`).set({ vote: 1 });
@@ -49,7 +50,8 @@ app.post('/sounds', async (req, res) => {
     const buffer = Buffer.from(JSON.stringify({
         text,
         soundId,
-        userId
+        userId,
+        sourceFile: sourceFile || ""
     }));
     topic.publish(buffer);
 

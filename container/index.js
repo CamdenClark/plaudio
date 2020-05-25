@@ -23,7 +23,7 @@ const getSSML = ({ userId, text }) =>
 
 
 app.post('/', async (req, res) => {
-    const { soundId, text, userId } = JSON.parse(
+    const { soundId, text, userId, sourceFile } = JSON.parse(
         Buffer.from(req.body.message.data, 'base64').toString()
     );
     const request = {
@@ -40,36 +40,60 @@ app.post('/', async (req, res) => {
     await writeFile(`${soundId}-tts.mp3`, response.audioContent, 'binary');
     console.log(`Saved synthesized speech for ${soundId}`);
     const bucket = storage.bucket('homophone-test');
-    await bucket.file('flac_sample.flac').download({ destination: `flac_sample.flac` });
-    console.log(`Saved file used for synthesis`);
+    if (sourceFile.length > 0) {
+        await bucket
+            .file(sourceFile)
+            .download({ destination: sourceFile });
+        console.log(`Saved source file`);
+    }
 
     await new Promise((resolve, reject) => {
         try {
-            ffmpeg()
-                .input(`${soundId}-tts.mp3`)
-                .input(`flac_sample.flac`)
-                .audioBitrate(256)
-                .on('progress', (progress) => {
-                    console.log(`[ffmpeg] ${JSON.stringify(progress)}`);
-                })
-                .on('error', (err) => {
-                    console.log(`[ffmpeg] error: ${err.message}`);
-                    reject();
-                })
-                .on('end', () => {
-                    console.log(`[ffmpeg] finished`);
-                    resolve();
-                })
-                .output(`${soundId}.mp3`)
-                .complexFilter({
-                    filter: 'concat',
-                    options: {
-                        n: 2,
-                        v: 0,
-                        a: 1,
-                    }
-                })
-                .run();
+            if (sourceFile.length > 0) {
+                ffmpeg()
+                    .input(`${soundId}-tts.mp3`)
+                    .input(sourceFile)
+                    .audioBitrate(256)
+                    .on('progress', (progress) => {
+                        console.log(`[ffmpeg] ${JSON.stringify(progress)}`);
+                    })
+                    .on('error', (err) => {
+                        console.log(`[ffmpeg] error: ${err.message}`);
+                        reject();
+                    })
+                    .on('end', () => {
+                        console.log(`[ffmpeg] finished`);
+                        resolve();
+                    })
+                    .output(`${soundId}.mp3`)
+                    .complexFilter({
+                        filter: 'concat',
+                        options: {
+                            n: 2,
+                            v: 0,
+                            a: 1,
+                        }
+                    })
+                    .run();
+
+            } else {
+                ffmpeg()
+                    .input(`${soundId}-tts.mp3`)
+                    .audioBitrate(256)
+                    .on('progress', (progress) => {
+                        console.log(`[ffmpeg] ${JSON.stringify(progress)}`);
+                    })
+                    .on('error', (err) => {
+                        console.log(`[ffmpeg] error: ${err.message}`);
+                        reject();
+                    })
+                    .on('end', () => {
+                        console.log(`[ffmpeg] finished`);
+                        resolve();
+                    })
+                    .output(`${soundId}.mp3`)
+                    .run();
+            }
         }
         catch (error) {
             console.error(error.message);
