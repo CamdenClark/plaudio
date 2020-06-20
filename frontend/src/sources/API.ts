@@ -1,3 +1,4 @@
+import axios, { AxiosInstance } from "axios";
 import { Sound, UserSound } from "../models/Sound";
 
 export interface IAPI {
@@ -56,6 +57,10 @@ export class MockAPI implements IAPI {
 }
 
 export class RealAPI implements IAPI {
+  client: AxiosInstance = axios.create({
+    baseURL: "https://api-dot-homophone.wl.r.appspot.com",
+  });
+
   vote(vote: number): Promise<void> {
     return new Promise((resolve) => {
       resolve();
@@ -76,8 +81,11 @@ export class RealAPI implements IAPI {
   }
 
   loadSounds(page: number): Promise<Sound[]> {
-    return new Promise((resolve) => {
+    return this.client.get("/sounds").then((response) => response.data);
+    /*return new Promise((resolve) => {
+
       resolve(sounds);
     });
+    */
   }
 }

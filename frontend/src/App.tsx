@@ -19,7 +19,7 @@ import { PlayerPage } from "./pages/PlayerPage";
 import { AudioFooter } from "./components/AudioFooter";
 
 import { Sound, UserSound } from "./models/Sound";
-import { IAPI, MockAPI } from "./sources/API";
+import { IAPI, RealAPI } from "./sources/API";
 
 import { createBrowserHistory } from "history";
 
@@ -29,6 +29,8 @@ const useStyles = makeStyles((theme) => ({
     flexDirection: "column",
     minHeight: "100vh",
     backgroundColor: theme.palette.background.paper,
+    fontFamily:
+      "-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif",
   },
   details: {
     display: "flex",
@@ -64,7 +66,7 @@ class AudioService extends React.Component<
 > {
   player: HTMLAudioElement = new Audio();
   history: any;
-  api: IAPI = new MockAPI();
+  api: IAPI = new RealAPI();
 
   state: AudioServiceState = {
     playing: false,
