@@ -7,15 +7,22 @@ import {
   Typography,
 } from "@material-ui/core";
 import { Speaker } from "@material-ui/icons";
+import { UserSound, Sound } from "../models/Sound";
 
 type ComposePageState = {
   text: string;
+  userId: string;
   file: File | null;
 };
 
-export function ComposePage() {
-  const defaultState: ComposePageState = { text: "", file: null };
+type ComposePageProps = {
+  onSubmit: (sound: UserSound) => Promise<Sound>;
+};
+
+export function ComposePage({ onSubmit }: ComposePageProps) {
+  const defaultState: ComposePageState = { text: "", file: null, userId: "" };
   const [state, setState] = React.useState(defaultState);
+  const { userId, text } = state;
   return (
     <Container>
       <Grid container direction="row" justify="center">
@@ -34,7 +41,9 @@ export function ComposePage() {
             rows={1}
             variant={"outlined"}
             style={{ minWidth: 100 }}
-            onChange={(e) => setState({ ...state, text: e.target.value || "" })}
+            onChange={(e) =>
+              setState({ ...state, userId: e.target.value || "" })
+            }
           ></TextField>
           <TextField
             helperText="What do you want to say?"
@@ -80,6 +89,7 @@ export function ComposePage() {
               variant="contained"
               color="primary"
               style={{ alignSelf: "flex-end" }}
+              onClick={() => onSubmit({ userId, text })}
             >
               Submit
             </Button>

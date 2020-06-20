@@ -18,30 +18,10 @@ import { ComposePage } from "./pages/ComposePage";
 import { PlayerPage } from "./pages/PlayerPage";
 import { AudioFooter } from "./components/AudioFooter";
 
-import { Sound } from "./models/Sound";
+import { Sound, UserSound } from "./models/Sound";
+import { IAPI, MockAPI } from "./sources/API";
 
 import { createBrowserHistory } from "history";
-
-const sounds: Sound[] = [
-  {
-    soundId: "snd-biden",
-    text: "Biden test 1",
-    url: "https://storage.googleapis.com/homophone-test/snd-biden8.mp3",
-    score: 2,
-    userVote: 0,
-    createdAt: 1590306971,
-    userId: "Bruh",
-  },
-  {
-    soundId: "snd-biden2",
-    text: "Biden test 2",
-    url: "https://storage.cloud.google.com/homophone-test/snd-vivaldi.mp3",
-    score: 2,
-    userVote: 0,
-    createdAt: 1590306941,
-    userId: "Bruh",
-  },
-];
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -84,6 +64,7 @@ class AudioService extends React.Component<
 > {
   player: HTMLAudioElement = new Audio();
   history: any;
+  api: IAPI = new MockAPI();
 
   state: AudioServiceState = {
     playing: false,
@@ -109,17 +90,22 @@ class AudioService extends React.Component<
       this.onNext();
     });
 
-    this.loadMoreQueueItems().then((queueItems) => {
-      this.setState(
-        { ...this.state, queue: [...this.state.queue, ...queueItems] },
-        () => {
-          this.player.src = this.state.queue[this.state.queuePosition].url;
-        }
-      );
-    });
-
     const history = createBrowserHistory();
     this.history = history;
+
+    if (this.history.location.pathname.startsWith("/snd")) {
+      this.loadSound(this.history.location.pathname.substr(1)).then((sound) => {
+        this.setState(
+          { ...this.state, queue: [...this.state.queue, sound] },
+          () => {
+            this.player.src = this.state.queue[this.state.queuePosition].url;
+          }
+        );
+      });
+    } else {
+      this.onNext();
+    }
+
     this.setState({ pathname: this.history.location.pathname });
 
     history.listen((location, action) => {
@@ -130,8 +116,12 @@ class AudioService extends React.Component<
     // this.player?.play();
   }
 
+  async loadSound(soundId: string): Promise<Sound> {
+    return this.api.loadSound(soundId);
+  }
+
   async loadMoreQueueItems(): Promise<Sound[]> {
-    return new Promise((resolve, _) => setTimeout(() => resolve(sounds), 100));
+    return this.api.loadSounds(0);
   }
 
   onPause = () => {
@@ -218,7 +208,11 @@ class AudioService extends React.Component<
     const { queue, queuePosition } = this.state;
     queue[queuePosition] = { ...queue[queuePosition], userVote: vote };
     this.setState({ queue });
-    return new Promise((resolve, _) => resolve());
+    return this.api.vote(vote);
+  };
+
+  onSubmit = (sound: UserSound): Promise<Sound> => {
+    return this.api.submit(sound);
   };
 
   render() {
@@ -251,7 +245,7 @@ class AudioService extends React.Component<
         {queue && queue.length > 0 && (
           <>
             {this.state.pathname === "/compose" ? (
-              <ComposePage />
+              <ComposePage onSubmit={this.onSubmit} />
             ) : (
               <PlayerPage
                 sound={this.state.queue[this.state.queuePosition]}
