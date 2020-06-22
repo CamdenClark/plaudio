@@ -2,7 +2,7 @@ import axios, { AxiosInstance } from "axios";
 import { Sound, UserSound } from "../models/Sound";
 
 export interface IAPI {
-  vote(vote: number): Promise<void>;
+  vote(soundId: string, vote: number): Promise<void>;
   submit(sound: Partial<Sound>): Promise<Sound>;
   loadSounds(page: number): Promise<Sound[]>;
   loadSound(soundId: string): Promise<Sound>;
@@ -30,7 +30,7 @@ const sounds: Sound[] = [
 ];
 
 export class MockAPI implements IAPI {
-  vote(vote: number): Promise<void> {
+  vote(soundId: string, vote: number): Promise<void> {
     return new Promise((resolve) => {
       resolve();
     });
@@ -61,31 +61,29 @@ export class RealAPI implements IAPI {
     baseURL: "https://api-dot-homophone.wl.r.appspot.com",
   });
 
-  vote(vote: number): Promise<void> {
-    return new Promise((resolve) => {
-      resolve();
-    });
+  vote(soundId: string, vote: number): Promise<void> {
+    return this.client
+      .post(`/sounds/${soundId}/vote`, { vote })
+      .then((response) => {
+        console.log(`Response: ${response.data}`);
+        return response.data;
+      });
   }
 
   submit(sound: UserSound): Promise<Sound> {
-    return new Promise((resolve) => {
-      console.log("submitted sound");
-      resolve({ ...sounds[1], text: sound.text, userId: sound.text });
+    return this.client.post(`/sounds`, sound).then((response) => {
+      console.log(`Response: ${response.data}`);
+      return response.data;
     });
   }
 
   loadSound(soundId: string): Promise<Sound> {
-    return new Promise((resolve) => {
-      resolve(sounds.filter((sound) => sound.soundId === soundId)[0]);
-    });
+    return this.client
+      .get(`/sounds/${soundId}`)
+      .then((response) => response.data);
   }
 
   loadSounds(page: number): Promise<Sound[]> {
     return this.client.get("/sounds").then((response) => response.data);
-    /*return new Promise((resolve) => {
-
-      resolve(sounds);
-    });
-    */
   }
 }

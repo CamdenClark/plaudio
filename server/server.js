@@ -1,6 +1,7 @@
 const express = require("express");
 const bodyParser = require("body-parser");
 const cors = require("cors");
+const shortid = require("shortid");
 
 const { PubSub } = require("@google-cloud/pubsub");
 const Firestore = require("@google-cloud/firestore");
@@ -19,7 +20,7 @@ app.use(bodyParser.json({ extended: true }));
 app.use(cors({ origin: true }));
 
 app.get("/", (req, res) => {
-  res.send("Hello from App Engine!");
+  res.send("Working...");
 });
 
 app.get("/sounds", async (req, res) => {
@@ -44,7 +45,8 @@ app.get("/sounds", async (req, res) => {
 });
 
 app.post("/sounds", async (req, res) => {
-  const { soundId, text, userId, sourceFile } = req.body;
+  const { text, userId, sourceFile } = req.body;
+  const soundId = "snd-" + shortid.generate();
   console.log(
     `Creating sound with id ${soundId}, user id ${userId}, and text ${text}.`
   );
@@ -80,6 +82,19 @@ app.post("/sounds", async (req, res) => {
   voteTopic.publish(voteBuffer);
 
   res.sendStatus(200);
+});
+
+app.get("/sounds/:soundId", async (req, res) => {
+  const { soundId } = req.params;
+  console.log(`Fetching sound with id ${soundId}`);
+  const document = await db.doc(`sounds/${soundId}`).get();
+  const sound = document.data();
+  sound["createdAt"] = sound["createdAt"].seconds;
+  sound["url"] =
+    "https://storage.googleapis.com/homophone-test/" +
+    sound["soundId"] +
+    ".mp3";
+  res.send(sound);
 });
 
 app.post("/sounds/:soundId/vote", async (req, res) => {

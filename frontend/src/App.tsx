@@ -97,15 +97,23 @@ class AudioService extends React.Component<
 
     if (this.history.location.pathname.startsWith("/snd")) {
       this.loadSound(this.history.location.pathname.substr(1)).then((sound) => {
+        console.log(sound);
         this.setState(
-          { ...this.state, queue: [...this.state.queue, sound] },
+          { ...this.state, queue: [sound, ...this.state.queue] },
           () => {
             this.player.src = this.state.queue[this.state.queuePosition].url;
           }
         );
       });
     } else {
-      this.onNext();
+      this.loadMoreQueueItems().then((sounds) => {
+        this.setState(
+          { ...this.state, queue: [...this.state.queue, ...sounds] },
+          () => {
+            this.player.src = this.state.queue[this.state.queuePosition].url;
+          }
+        );
+      });
     }
 
     this.setState({ pathname: this.history.location.pathname });
@@ -114,8 +122,6 @@ class AudioService extends React.Component<
       console.log(action, location.pathname, location.state);
       this.setState({ pathname: location.pathname });
     });
-
-    // this.player?.play();
   }
 
   async loadSound(soundId: string): Promise<Sound> {
@@ -136,8 +142,19 @@ class AudioService extends React.Component<
     this.setState({ ...this.state, playing: true });
   };
 
+  onResync = () => {
+    const { queue, queuePosition, pathname, playing } = this.state;
+    if (pathname !== "/compose") {
+      this.history.push(`/${queue[queuePosition].soundId}`);
+    }
+    this.player.src = queue[queuePosition].url;
+    if (playing) {
+      this.player.play();
+    }
+  };
+
   onNext = async () => {
-    const { queue, queuePosition, playing } = this.state;
+    const { queue, queuePosition } = this.state;
     this.player.pause();
     if (queuePosition >= queue.length - 1) {
       const newQueueItems = await this.loadMoreQueueItems();
@@ -148,17 +165,7 @@ class AudioService extends React.Component<
             queue: [...queue, ...newQueueItems],
             queuePosition: queuePosition + 1,
           },
-          () => {
-            if (this.state.pathname !== "/compose") {
-              this.history.push(
-                `/${this.state.queue[this.state.queuePosition].soundId}`
-              );
-            }
-            this.player.src = this.state.queue[this.state.queuePosition].url;
-            if (playing) {
-              this.player.play();
-            }
-          }
+          this.onResync
         );
       }
     } else {
@@ -167,41 +174,21 @@ class AudioService extends React.Component<
           ...this.state,
           queuePosition: queuePosition + 1,
         },
-        () => {
-          if (this.state.pathname !== "/compose") {
-            this.history.push(
-              `/${this.state.queue[this.state.queuePosition].soundId}`
-            );
-          }
-          if (playing) {
-            this.player.src = this.state.queue[this.state.queuePosition].url;
-            this.player.play();
-          }
-        }
+        this.onResync
       );
     }
   };
 
   onPrevious = () => {
-    const { queuePosition, playing } = this.state;
-    this.player.pause();
+    const { queuePosition } = this.state;
     if (queuePosition > 0) {
+      this.player.pause();
       this.setState(
         {
           ...this.state,
           queuePosition: queuePosition - 1,
         },
-        () => {
-          if (this.state.pathname !== "/compose") {
-            this.history.push(
-              `/${this.state.queue[this.state.queuePosition].soundId}`
-            );
-          }
-          if (playing && this.player) {
-            this.player.src = this.state.queue[this.state.queuePosition].url;
-            this.player.play();
-          }
-        }
+        this.onResync
       );
     }
   };
@@ -210,7 +197,7 @@ class AudioService extends React.Component<
     const { queue, queuePosition } = this.state;
     queue[queuePosition] = { ...queue[queuePosition], userVote: vote };
     this.setState({ queue });
-    return this.api.vote(vote);
+    return this.api.vote(queue[queuePosition].soundId, vote);
   };
 
   onSubmit = (sound: UserSound): Promise<Sound> => {
@@ -218,7 +205,7 @@ class AudioService extends React.Component<
   };
 
   render() {
-    const { queue } = this.state;
+    const { queue, queuePosition, pathname } = this.state;
     return (
       <>
         <AppBar position="static">
@@ -226,9 +213,7 @@ class AudioService extends React.Component<
             <Typography variant="h6" className={this.props.classes?.title}>
               <Link
                 onClick={() =>
-                  this.history.push(
-                    `/${this.state.queue[this.state.queuePosition].soundId}`
-                  )
+                  this.history.push(`/${queue[queuePosition].soundId}`)
                 }
                 color="inherit"
                 className={this.props.classes?.titleLink}
@@ -238,7 +223,7 @@ class AudioService extends React.Component<
             </Typography>
             <IconButton
               color={"inherit"}
-              onClick={() => this.history?.push("/compose")}
+              onClick={() => this.history.push("/compose")}
             >
               <Edit />
             </IconButton>
@@ -246,17 +231,14 @@ class AudioService extends React.Component<
         </AppBar>
         {queue && queue.length > 0 && (
           <>
-            {this.state.pathname === "/compose" ? (
+            {pathname === "/compose" ? (
               <ComposePage onSubmit={this.onSubmit} />
             ) : (
-              <PlayerPage
-                sound={this.state.queue[this.state.queuePosition]}
-                onVote={this.onVote}
-              />
+              <PlayerPage sound={queue[queuePosition]} onVote={this.onVote} />
             )}
             <AudioFooter
               audioState={this.state}
-              sound={this.state.queue[this.state.queuePosition]}
+              sound={queue[queuePosition]}
               onPause={this.onPause}
               onPrevious={this.onPrevious}
               onPlay={this.onPlay}

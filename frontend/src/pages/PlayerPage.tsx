@@ -47,7 +47,11 @@ export function PlayerPage({ onVote, sound }: PlayerPageProps) {
               <Typography style={{ fontSize: "0.9rem" }}>
                 from user {sound.userId}
               </Typography>
-              <Typography style={{ fontSize: "2rem" }}>{sound.text}</Typography>
+              <Typography
+                style={{ fontSize: "1.8rem", textOverflow: "ellipsis" }}
+              >
+                {sound.text}
+              </Typography>
             </CardContent>
             <CardActions>
               <IconButton
