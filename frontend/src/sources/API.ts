@@ -96,6 +96,14 @@ export class RealAPI implements IAPI {
   }
 
   upload(file: File): Promise<RawSound> {
-    return this.client.post("/files").then((response) => response.data);
+    const formData = new FormData();
+    formData.append("file", file);
+    return this.client
+      .post("/files", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      })
+      .then((response) => response.data);
   }
 }

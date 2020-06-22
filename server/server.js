@@ -2,11 +2,14 @@ const express = require("express");
 const bodyParser = require("body-parser");
 const cors = require("cors");
 const shortid = require("shortid");
+const Multer = require("multer");
 
-const { PubSub } = require("@google-cloud/pubsub");
 const Firestore = require("@google-cloud/firestore");
+const { PubSub } = require("@google-cloud/pubsub");
+const { Storage } = require("@google-cloud/storage");
 
 const pubsub = new PubSub();
+const storage = new Storage();
 const TOPIC_NAME = "text-to-speech";
 const topic = pubsub.topic(TOPIC_NAME);
 const voteTopic = pubsub.topic("vote-trigger");
@@ -18,6 +21,10 @@ const db = new Firestore({
 const app = express();
 app.use(bodyParser.json({ extended: true }));
 app.use(cors({ origin: true }));
+const multer = Multer({
+  storage: Multer.memoryStorage(),
+  limits: 20 * 1024 * 1024,
+});
 
 app.get("/", (req, res) => {
   res.send("Working...");
@@ -125,6 +132,30 @@ app.post("/sounds/:soundId/vote", async (req, res) => {
     voteTopic.publish(buffer);
   }
   res.sendStatus(200);
+});
+
+app.post("/files", multer.single("file"), async (req, res, next) => {
+  const { file } = req;
+  const fileId = "file-" + shortid.generate();
+
+  const bucket = storage.bucket("homophone-test");
+
+  const blob = bucket.file(file.originalname);
+  const blobStream = blob.createWriteStream();
+
+  blobStream.on("error", (err) => {
+    next(err);
+  });
+  blobStream.on("finish", async () => {
+    // The public URL can be used to directly access the file via HTTP.
+    const audioFile = { fileId, name: file.originalname };
+
+    const document = db.doc(`files/${fileId}`);
+    await document.set(audioFile);
+    res.send(audioFile);
+  });
+
+  blobStream.end(req.file.buffer);
 });
 
 // Listen to the App Engine-specified port, or 8080 otherwise

@@ -8,21 +8,37 @@ import {
 } from "@material-ui/core";
 import { Speaker } from "@material-ui/icons";
 import { UserSound, Sound } from "../models/Sound";
+import { IAPI } from "../sources/API";
+import { AudioFile } from "../models/AudioFile";
 
 type ComposePageState = {
   text: string;
   userId: string;
-  file: File | null;
+  rawFile: File | null;
+  audioFile?: AudioFile;
 };
 
 type ComposePageProps = {
   onSubmit: (sound: UserSound) => Promise<Sound>;
+  api: IAPI;
 };
 
-export function ComposePage({ onSubmit }: ComposePageProps) {
-  const defaultState: ComposePageState = { text: "", file: null, userId: "" };
+export function ComposePage({ onSubmit, api }: ComposePageProps) {
+  const defaultState: ComposePageState = {
+    text: "",
+    rawFile: null,
+    userId: "",
+  };
   const [state, setState] = React.useState(defaultState);
-  const { userId, text } = state;
+  const { userId, text, rawFile, audioFile } = state;
+  React.useEffect(() => {
+    if (rawFile) {
+      api.upload(rawFile).then((audioFile) => {
+        console.log(audioFile);
+        setState({ ...state, audioFile });
+      });
+    }
+  }, [rawFile]);
   return (
     <Container>
       <Grid container direction="row" justify="center">
@@ -69,7 +85,7 @@ export function ComposePage({ onSubmit }: ComposePageProps) {
               onChange={(e) =>
                 setState({
                   ...state,
-                  file: e.target?.files ? e.target.files[0] : null,
+                  rawFile: e.target?.files ? e.target.files[0] : null,
                 })
               }
             />
@@ -94,11 +110,9 @@ export function ComposePage({ onSubmit }: ComposePageProps) {
               Submit
             </Button>
           </Grid>
-          {state.file && (
+          {rawFile && (
             <Grid item style={{ marginTop: 15 }}>
-              <Typography variant="caption">
-                Audio: {state.file?.name}
-              </Typography>
+              <Typography variant="caption">Audio: {rawFile.name}</Typography>
             </Grid>
           )}
         </Grid>

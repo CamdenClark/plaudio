@@ -232,7 +232,7 @@ class AudioService extends React.Component<
         {queue && queue.length > 0 && (
           <>
             {pathname === "/compose" ? (
-              <ComposePage onSubmit={this.onSubmit} />
+              <ComposePage onSubmit={this.onSubmit} api={this.api} />
             ) : (
               <PlayerPage sound={queue[queuePosition]} onVote={this.onVote} />
             )}
