@@ -38,6 +38,7 @@ type PlayerPageProps = {
 
 export function PlayerPage({ onVote, sound }: PlayerPageProps) {
   const classes = useStyles();
+  console.log(sound);
   return (
     <Container className={classes.main}>
       <Grid container direction="row" justify="center" alignItems="center">
@@ -67,7 +68,7 @@ export function PlayerPage({ onVote, sound }: PlayerPageProps) {
                   }
                 />
               </IconButton>
-              20
+              {sound.score + (sound.userVote || 0)}
               <IconButton
                 onClick={() => {
                   sound.userVote === 1 ? onVote(0) : onVote(1);

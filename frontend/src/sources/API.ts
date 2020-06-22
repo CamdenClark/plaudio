@@ -1,11 +1,13 @@
 import axios, { AxiosInstance } from "axios";
 import { Sound, UserSound } from "../models/Sound";
+import { RawSound } from "../models/RawSound";
 
 export interface IAPI {
   vote(soundId: string, vote: number): Promise<void>;
   submit(sound: Partial<Sound>): Promise<Sound>;
   loadSounds(page: number): Promise<Sound[]>;
   loadSound(soundId: string): Promise<Sound>;
+  upload(file: File): Promise<RawSound>;
 }
 
 const sounds: Sound[] = [
@@ -54,11 +56,17 @@ export class MockAPI implements IAPI {
       resolve(sounds);
     });
   }
+
+  upload(file: File): Promise<RawSound> {
+    return new Promise((resolve) => {
+      resolve({ fileId: "test", name: "test.mp3" });
+    });
+  }
 }
 
 export class RealAPI implements IAPI {
   client: AxiosInstance = axios.create({
-    baseURL: "https://api-dot-homophone.wl.r.appspot.com",
+    baseURL: "http://api.homophone.io",
   });
 
   vote(soundId: string, vote: number): Promise<void> {
@@ -85,5 +93,9 @@ export class RealAPI implements IAPI {
 
   loadSounds(page: number): Promise<Sound[]> {
     return this.client.get("/sounds").then((response) => response.data);
+  }
+
+  upload(file: File): Promise<RawSound> {
+    return this.client.post("/files").then((response) => response.data);
   }
 }
