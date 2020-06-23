@@ -11,4 +11,5 @@ export interface Sound {
 export interface UserSound {
   text: string;
   userId: string;
+  sourceFile?: string;
 }

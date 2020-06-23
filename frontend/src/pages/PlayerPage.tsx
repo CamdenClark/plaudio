@@ -38,7 +38,6 @@ type PlayerPageProps = {
 
 export function PlayerPage({ onVote, sound }: PlayerPageProps) {
   const classes = useStyles();
-  console.log(sound);
   return (
     <Container className={classes.main}>
       <Grid container direction="row" justify="center" alignItems="center">

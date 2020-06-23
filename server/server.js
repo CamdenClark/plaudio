@@ -23,7 +23,7 @@ app.use(bodyParser.json({ extended: true }));
 app.use(cors({ origin: true }));
 const multer = Multer({
   storage: Multer.memoryStorage(),
-  limits: 20 * 1024 * 1024,
+  limits: 100 * 1024 * 1024,
 });
 
 app.get("/", (req, res) => {

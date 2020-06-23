@@ -107,7 +107,9 @@ export function ComposePage({ onSubmit, api }: ComposePageProps) {
               variant="contained"
               color="primary"
               style={{ alignSelf: "flex-end" }}
-              onClick={() => onSubmit({ userId, text })}
+              onClick={() =>
+                onSubmit({ userId, text, sourceFile: audioFile?.name })
+              }
             >
               Submit
             </Button>

@@ -78,6 +78,15 @@ class AudioService extends React.Component<
   };
 
   componentDidMount() {
+    document.addEventListener("keypress", (event) => {
+      if (event.code === "Space") {
+        if (this.state.playing) {
+          this.onPause();
+        } else {
+          this.onPlay();
+        }
+      }
+    });
     this.player.addEventListener("timeupdate", (event) => {
       const audioElement = event.target as HTMLAudioElement;
       const { currentTime, duration } = audioElement;
