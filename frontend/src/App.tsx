@@ -79,7 +79,13 @@ class AudioService extends React.Component<
 
   componentDidMount() {
     document.addEventListener("keypress", (event) => {
-      if (event.code === "Space") {
+      if (
+        event.code === "Space" &&
+        this.history.location.pathname !== "/compose" &&
+        !["Play", "Pause", "Next", "Previous"].includes(
+          (event.target as any)?.ariaLabel
+        )
+      ) {
         if (this.state.playing) {
           this.onPause();
         } else {
@@ -87,6 +93,7 @@ class AudioService extends React.Component<
         }
       }
     });
+
     this.player.addEventListener("timeupdate", (event) => {
       const audioElement = event.target as HTMLAudioElement;
       const { currentTime, duration } = audioElement;

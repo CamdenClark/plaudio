@@ -26,6 +26,16 @@ const multer = Multer({
   limits: 100 * 1024 * 1024,
 });
 
+const renderSound = (sound) => ({
+  soundId: sound.soundId,
+  url:
+    "https://storage.googleapis.com/homophone-test/" + sound.soundId + ".mp3",
+  createdAt: sound.createdAt.seconds,
+  score: sound.score,
+  userId: sound.userId,
+  text: sound.text,
+});
+
 app.get("/", (req, res) => {
   res.send("Working...");
 });
@@ -37,18 +47,7 @@ app.get("/sounds", async (req, res) => {
     .limit(10);
   const sounds = await query.get();
   const { docs } = sounds;
-  res.send(
-    docs
-      .map((doc) => doc.data())
-      .map((doc) => {
-        doc["createdAt"] = doc["createdAt"].seconds;
-        doc["url"] =
-          "https://storage.googleapis.com/homophone-test/" +
-          doc["soundId"] +
-          ".mp3";
-        return doc;
-      })
-  );
+  res.send(docs.map((doc) => doc.data()).map(renderSound));
 });
 
 app.post("/sounds", async (req, res) => {
@@ -95,12 +94,7 @@ app.get("/sounds/:soundId", async (req, res) => {
   const { soundId } = req.params;
   console.log(`Fetching sound with id ${soundId}`);
   const document = await db.doc(`sounds/${soundId}`).get();
-  const sound = document.data();
-  sound["createdAt"] = sound["createdAt"].seconds;
-  sound["url"] =
-    "https://storage.googleapis.com/homophone-test/" +
-    sound["soundId"] +
-    ".mp3";
+  const sound = renderSound(document.data());
   res.send(sound);
 });
 
@@ -113,11 +107,11 @@ app.post("/sounds/:soundId/vote", async (req, res) => {
   const existingVote = await voteDocument.get();
   if (existingVote.exists) {
     await voteDocument.update({
-      vote: vote,
+      vote,
     });
   } else {
     await voteDocument.set({
-      vote: vote,
+      vote,
     });
   }
   const scoreDelta =
@@ -147,7 +141,6 @@ app.post("/files", multer.single("file"), async (req, res, next) => {
     next(err);
   });
   blobStream.on("finish", async () => {
-    // The public URL can be used to directly access the file via HTTP.
     const audioFile = { fileId, name: file.originalname };
 
     const document = db.doc(`files/${fileId}`);
@@ -158,7 +151,6 @@ app.post("/files", multer.single("file"), async (req, res, next) => {
   blobStream.end(req.file.buffer);
 });
 
-// Listen to the App Engine-specified port, or 8080 otherwise
 const PORT = process.env.PORT || 8080;
 app.listen(PORT, () => {
   console.log(`Server listening on port ${PORT}...`);

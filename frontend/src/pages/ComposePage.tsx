@@ -34,11 +34,10 @@ export function ComposePage({ onSubmit, api }: ComposePageProps) {
   React.useEffect(() => {
     if (rawFile) {
       api.upload(rawFile).then((audioFile) => {
-        console.log(audioFile);
-        setState({ ...state, audioFile });
+        setState((state) => ({ ...state, audioFile }));
       });
     }
-  }, [rawFile]);
+  }, [api, rawFile]);
   return (
     <Container>
       <Grid container direction="row" justify="center">
