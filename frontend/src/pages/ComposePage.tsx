@@ -52,6 +52,7 @@ export function ComposePage({ onSubmit, api }: ComposePageProps) {
           style={{ marginTop: 40 }}
         >
           <TextField
+            aria-describedby={"Name"}
             label={"Name"}
             multiline
             rows={1}
@@ -63,6 +64,7 @@ export function ComposePage({ onSubmit, api }: ComposePageProps) {
           ></TextField>
           <TextField
             helperText="What do you want to say?"
+            aria-describedby={"Sound text"}
             label={"Text"}
             multiline
             rows={4}

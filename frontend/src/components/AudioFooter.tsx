@@ -49,12 +49,15 @@ export function AudioFooter({
             xs={12}
           >
             <Grid item>
-              <IconButton onClick={onPrevious}>
+              <IconButton aria-label={"Previous"} onClick={onPrevious}>
                 <SkipPrevious style={{ fontSize: "3.5rem" }} />
               </IconButton>
             </Grid>
             <Grid item>
-              <IconButton onClick={audioState.playing ? onPause : onPlay}>
+              <IconButton
+                aria-label={audioState.playing ? "Pause" : "Play"}
+                onClick={audioState.playing ? onPause : onPlay}
+              >
                 {audioState.playing ? (
                   <Pause style={{ fontSize: "3.5rem" }} />
                 ) : (
@@ -63,7 +66,7 @@ export function AudioFooter({
               </IconButton>
             </Grid>
             <Grid item>
-              <IconButton onClick={onNext}>
+              <IconButton aria-label={"Next"} onClick={onNext}>
                 <SkipNext style={{ fontSize: "3.5rem" }} />
               </IconButton>
             </Grid>

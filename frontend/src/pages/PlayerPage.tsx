@@ -56,6 +56,9 @@ export function PlayerPage({ onVote, sound }: PlayerPageProps) {
             </CardContent>
             <CardActions>
               <IconButton
+                aria-label={
+                  sound.userVote === -1 ? "Remove downvote" : "Downvote"
+                }
                 onClick={() => {
                   sound.userVote === -1 ? onVote(0) : onVote(-1);
                 }}
@@ -70,6 +73,7 @@ export function PlayerPage({ onVote, sound }: PlayerPageProps) {
               </IconButton>
               {sound.score + (sound.userVote || 0)}
               <IconButton
+                aria-label={sound.userVote === 1 ? "Remove upvote" : "Upvote"}
                 onClick={() => {
                   sound.userVote === 1 ? onVote(0) : onVote(1);
                 }}

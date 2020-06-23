@@ -222,6 +222,7 @@ class AudioService extends React.Component<
               </Link>
             </Typography>
             <IconButton
+              aria-label={"Compose"}
               color={"inherit"}
               onClick={() => this.history.push("/compose")}
             >
