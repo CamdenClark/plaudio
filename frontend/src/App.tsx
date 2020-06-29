@@ -1,57 +1,20 @@
 import React from "react";
-import {
-  AppBar,
-  IconButton,
-  Link,
-  Toolbar,
-  Typography,
-} from "@material-ui/core";
-import { Edit } from "@material-ui/icons";
-import {
-  makeStyles,
-  createMuiTheme,
-  ThemeProvider,
-} from "@material-ui/core/styles";
+import { BrowserRouter as Router, Switch, Route } from "react-router-dom";
+
+import { createMuiTheme, ThemeProvider } from "@material-ui/core/styles";
 import { lightGreen } from "@material-ui/core/colors";
 
-import { ComposePage } from "./pages/ComposePage";
-import { PlayerPage } from "./pages/PlayerPage";
-import { AudioFooter } from "./components/AudioFooter";
+import { AudioFooter, Header } from "./components/Layout";
 
 import { Sound, UserSound } from "./models/Sound";
 import { Listen } from "./models/Listen";
+
 import { IAPI, RealAPI } from "./sources/API";
+import { ComposePage, PlayerPage, SignupPage } from "./pages";
 
-import {
-  BrowserRouter as Router,
-  Switch,
-  Route,
-  useHistory,
-} from "react-router-dom";
-
-const useStyles = makeStyles((theme) => ({
-  root: {
-    display: "flex",
-    flexDirection: "column",
-    minHeight: "100vh",
-    backgroundColor: theme.palette.background.paper,
-    fontFamily:
-      "-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif",
-  },
-  details: {
-    display: "flex",
-    flexDirection: "column",
-  },
-  content: {
-    flex: "1 0 auto",
-  },
-  title: {
-    flexGrow: 1,
-  },
-  titleLink: {
-    cursor: "pointer",
-  },
-}));
+interface Dictionary<T> {
+  [key: string]: T;
+}
 
 type AudioState = {
   playing: boolean;
@@ -67,7 +30,7 @@ type AudioServiceState = {
   listens: Dictionary<Listen>;
 };
 
-class AudService extends React.Component<{}, AudioServiceState> {
+class AudioService extends React.Component<{}, AudioServiceState> {
   player: HTMLAudioElement = new Audio();
   api: IAPI = new RealAPI();
 
@@ -248,6 +211,9 @@ class AudService extends React.Component<{}, AudioServiceState> {
       <Router>
         <Header soundId={soundId} />
         <Switch>
+          <Route path={`/signup`}>
+            <SignupPage />
+          </Route>
           <Route path={`/compose`}>
             <ComposePage onSubmit={this.onSubmit} api={this.api} />
           </Route>
@@ -285,33 +251,6 @@ class AudService extends React.Component<{}, AudioServiceState> {
   }
 }
 
-const Header = ({ soundId }: { soundId: string | null }) => {
-  const classes = useStyles();
-  const history = useHistory();
-  return (
-    <AppBar position="static">
-      <Toolbar>
-        <Typography variant="h6" className={classes.title}>
-          <Link
-            onClick={() => history.push(`/${soundId || ""}`)}
-            color="inherit"
-            className={classes.titleLink}
-          >
-            homophone
-          </Link>
-        </Typography>
-        <IconButton
-          aria-label={"Compose"}
-          color={"inherit"}
-          onClick={() => history.push("/compose")}
-        >
-          <Edit />
-        </IconButton>
-      </Toolbar>
-    </AppBar>
-  );
-};
-
 const theme = createMuiTheme({
   palette: {
     contrastThreshold: 3,
@@ -320,14 +259,10 @@ const theme = createMuiTheme({
   },
 });
 
-interface Dictionary<T> {
-  [key: string]: T;
-}
-
 function App() {
   return (
     <ThemeProvider theme={theme}>
-      <AudService />
+      <AudioService />
     </ThemeProvider>
   );
 }

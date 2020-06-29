@@ -7,7 +7,7 @@ const useStyles = makeStyles((theme) => ({
   footer: {
     padding: theme.spacing(3, 2),
     marginTop: "auto",
-    position: "static",
+    position: "sticky",
     borderTop: "1px solid " + theme.palette.grey[300],
   },
 }));
