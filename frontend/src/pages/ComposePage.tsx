@@ -10,7 +10,6 @@ import { Speaker } from "@material-ui/icons";
 import { UserSound, Sound } from "../models/Sound";
 import { IAPI } from "../sources/API";
 import { AudioFile } from "../models/AudioFile";
-import SomeFirebaseComponent from "../components/Auth/Signup";
 
 type ComposePageState = {
   text: string;

@@ -19,9 +19,15 @@ import { PlayerPage } from "./pages/PlayerPage";
 import { AudioFooter } from "./components/AudioFooter";
 
 import { Sound, UserSound } from "./models/Sound";
+import { Listen } from "./models/Listen";
 import { IAPI, RealAPI } from "./sources/API";
 
-import { createBrowserHistory } from "history";
+import {
+  BrowserRouter as Router,
+  Switch,
+  Route,
+  useHistory,
+} from "react-router-dom";
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -47,96 +53,44 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-type AudioServiceProps = {
-  classes: any;
+type AudioState = {
+  playing: boolean;
+  duration: number;
+  currentTime: number;
 };
 
 type AudioServiceState = {
-  playing: boolean;
-  queue: Sound[];
+  audioState: AudioState;
+  queue: string[];
   queuePosition: number;
-  duration: number;
-  currentTime: number;
-  pathname: string;
+  sounds: Dictionary<Sound>;
+  listens: Dictionary<Listen>;
 };
 
-class AudioService extends React.Component<
-  AudioServiceProps,
-  AudioServiceState
-> {
+class AudService extends React.Component<{}, AudioServiceState> {
   player: HTMLAudioElement = new Audio();
-  history: any;
   api: IAPI = new RealAPI();
 
   state: AudioServiceState = {
-    playing: false,
+    audioState: { playing: false, duration: 0, currentTime: 0 },
     queue: [],
     queuePosition: 0,
-    duration: 0,
-    currentTime: 0,
-    pathname: "/",
+    sounds: {},
+    listens: {},
   };
 
   componentDidMount() {
-    document.addEventListener("keypress", (event) => {
-      if (
-        event.code === "Space" &&
-        this.history.location.pathname !== "/compose" &&
-        !["Play", "Pause", "Next", "Previous"].includes(
-          (event.target as any)?.ariaLabel
-        )
-      ) {
-        if (this.state.playing) {
-          this.onPause();
-        } else {
-          this.onPlay();
-        }
-      }
-    });
-
     this.player.addEventListener("timeupdate", (event) => {
       const audioElement = event.target as HTMLAudioElement;
       const { currentTime, duration } = audioElement;
       this.setState({
         ...this.state,
-        currentTime,
-        duration,
+        audioState: { ...this.state.audioState, currentTime, duration },
       });
     });
 
     this.player.addEventListener("ended", (event) => {
       this.onNext();
-    });
-
-    const history = createBrowserHistory();
-    this.history = history;
-
-    if (this.history.location.pathname.startsWith("/snd")) {
-      this.loadSound(this.history.location.pathname.substr(1)).then((sound) => {
-        console.log(sound);
-        this.setState(
-          { ...this.state, queue: [sound, ...this.state.queue] },
-          () => {
-            this.player.src = this.state.queue[this.state.queuePosition].url;
-          }
-        );
-      });
-    } else {
-      this.loadMoreQueueItems().then((sounds) => {
-        this.setState(
-          { ...this.state, queue: [...this.state.queue, ...sounds] },
-          () => {
-            this.player.src = this.state.queue[this.state.queuePosition].url;
-          }
-        );
-      });
-    }
-
-    this.setState({ pathname: this.history.location.pathname });
-
-    history.listen((location, action) => {
-      console.log(action, location.pathname, location.state);
-      this.setState({ pathname: location.pathname });
     });
   }
 
@@ -148,23 +102,49 @@ class AudioService extends React.Component<
     return this.api.loadSounds(0);
   }
 
+  getSoundId = () => {
+    const { queue, queuePosition } = this.state;
+    return queue[queuePosition];
+  };
+
+  getSound = () => {
+    const { sounds } = this.state;
+    return sounds[this.getSoundId()];
+  };
+
+  getListen = () => {
+    const { listens } = this.state;
+    return listens[this.getSoundId()];
+  };
+
   onPause = () => {
     this.player.pause();
-    this.setState({ ...this.state, playing: false });
+    this.setState({
+      ...this.state,
+      audioState: { ...this.state.audioState, playing: false },
+    });
   };
 
   onPlay = () => {
     this.player.play();
-    this.setState({ ...this.state, playing: true });
+    this.setState({
+      ...this.state,
+      audioState: { ...this.state.audioState, playing: true },
+    });
+  };
+
+  onToggle = () => {
+    if (this.state.audioState.playing) {
+      this.onPause();
+    } else {
+      this.onPlay();
+    }
   };
 
   onResync = () => {
-    const { queue, queuePosition, pathname, playing } = this.state;
-    if (pathname !== "/compose") {
-      this.history.push(`/${queue[queuePosition].soundId}`);
-    }
-    this.player.src = queue[queuePosition].url;
-    if (playing) {
+    const { audioState } = this.state;
+    this.player.src = this.getSound().url;
+    if (audioState.playing) {
       this.player.play();
     }
   };
@@ -173,17 +153,7 @@ class AudioService extends React.Component<
     const { queue, queuePosition } = this.state;
     this.player.pause();
     if (queuePosition >= queue.length - 1) {
-      const newQueueItems = await this.loadMoreQueueItems();
-      if (newQueueItems.length > 0) {
-        this.setState(
-          {
-            ...this.state,
-            queue: [...queue, ...newQueueItems],
-            queuePosition: queuePosition + 1,
-          },
-          this.onResync
-        );
-      }
+      this.loadSounds({ next: true });
     } else {
       this.setState(
         {
@@ -210,63 +180,137 @@ class AudioService extends React.Component<
   };
 
   onVote = (vote: number): Promise<void> => {
-    const { queue, queuePosition } = this.state;
-    queue[queuePosition] = { ...queue[queuePosition], userVote: vote };
-    this.setState({ queue });
-    return this.api.vote(queue[queuePosition].soundId, vote);
+    const { listens } = this.state;
+    const soundId = this.getSoundId();
+    if (soundId) {
+      this.setState({
+        listens: {
+          ...listens,
+          [soundId]: {
+            ...listens[soundId],
+            vote,
+          },
+        },
+      });
+      return this.api.vote(soundId, vote);
+    }
+    return new Promise((resolve, _) => {
+      resolve();
+    });
   };
 
   onSubmit = (sound: UserSound): Promise<Sound> => {
     return this.api.submit(sound);
   };
 
+  loadSounds = (options?: { soundId?: string; next?: boolean }) => {
+    if (options?.soundId) {
+      this.loadSound(options.soundId).then((sound) => {
+        const { sounds, queue } = this.state;
+        this.setState(
+          {
+            ...this.state,
+            queue: [sound.soundId, ...queue],
+            sounds: { ...sounds, [sound.soundId]: sound },
+          },
+          () => {
+            this.onResync();
+          }
+        );
+      });
+    } else {
+      this.loadMoreQueueItems().then((newSounds) => {
+        const { sounds, queue, queuePosition } = this.state;
+        this.setState(
+          {
+            ...this.state,
+            queue: [...queue, ...newSounds.map((snd) => snd.soundId)],
+            sounds: Object.assign(
+              sounds,
+              ...newSounds.map((snd) => ({ [snd.soundId]: snd }))
+            ),
+            queuePosition: options?.next ? queuePosition + 1 : queuePosition,
+          },
+          () => {
+            this.onResync();
+          }
+        );
+      });
+    }
+  };
+
   render() {
-    const { queue, queuePosition, pathname } = this.state;
+    const { audioState, listens, queue, queuePosition, sounds } = this.state;
+    const soundId = queuePosition < queue.length ? queue[queuePosition] : null;
+    const sound = soundId && soundId.length > 0 ? sounds[soundId] : null;
+    const listen = soundId && soundId.length > 0 ? listens[soundId] : null;
     return (
-      <>
-        <AppBar position="static">
-          <Toolbar>
-            <Typography variant="h6" className={this.props.classes?.title}>
-              <Link
-                onClick={() =>
-                  this.history.push(`/${queue[queuePosition].soundId}`)
-                }
-                color="inherit"
-                className={this.props.classes?.titleLink}
-              >
-                homophone
-              </Link>
-            </Typography>
-            <IconButton
-              aria-label={"Compose"}
-              color={"inherit"}
-              onClick={() => this.history.push("/compose")}
-            >
-              <Edit />
-            </IconButton>
-          </Toolbar>
-        </AppBar>
-        {queue && queue.length > 0 && (
-          <>
-            {pathname === "/compose" ? (
-              <ComposePage onSubmit={this.onSubmit} api={this.api} />
-            ) : (
-              <PlayerPage sound={queue[queuePosition]} onVote={this.onVote} />
-            )}
-            <AudioFooter
-              audioState={this.state}
-              sound={queue[queuePosition]}
-              onPause={this.onPause}
-              onPrevious={this.onPrevious}
-              onPlay={this.onPlay}
-              onNext={this.onNext}
+      <Router>
+        <Header soundId={soundId} />
+        <Switch>
+          <Route path={`/compose`}>
+            <ComposePage onSubmit={this.onSubmit} api={this.api} />
+          </Route>
+          <Route path={`/:soundId`}>
+            <PlayerPage
+              listen={listen}
+              loadSounds={this.loadSounds}
+              onVote={this.onVote}
+              sound={sound}
+              togglePlayPause={this.onToggle}
             />
-          </>
+          </Route>
+          <Route path={`/`}>
+            <PlayerPage
+              listen={listen}
+              loadSounds={this.loadSounds}
+              onVote={this.onVote}
+              sound={sound}
+              togglePlayPause={this.onToggle}
+            />
+          </Route>
+        </Switch>
+        {sound && (
+          <AudioFooter
+            audioState={audioState}
+            sound={sound}
+            onPause={this.onPause}
+            onPrevious={this.onPrevious}
+            onPlay={this.onPlay}
+            onNext={this.onNext}
+          />
         )}
-      </>
+      </Router>
     );
   }
 }
+
+const Header = ({ soundId }: { soundId: string | null }) => {
+  const classes = useStyles();
+  const history = useHistory();
+  return (
+    <AppBar position="static">
+      <Toolbar>
+        <Typography variant="h6" className={classes.title}>
+          <Link
+            onClick={() => history.push(`/${soundId || ""}`)}
+            color="inherit"
+            className={classes.titleLink}
+          >
+            homophone
+          </Link>
+        </Typography>
+        <IconButton
+          aria-label={"Compose"}
+          color={"inherit"}
+          onClick={() => history.push("/compose")}
+        >
+          <Edit />
+        </IconButton>
+      </Toolbar>
+    </AppBar>
+  );
+};
 
 const theme = createMuiTheme({
   palette: {
@@ -276,14 +320,14 @@ const theme = createMuiTheme({
   },
 });
 
-function App() {
-  const classes = useStyles();
+interface Dictionary<T> {
+  [key: string]: T;
+}
 
+function App() {
   return (
     <ThemeProvider theme={theme}>
-      <div className={classes.root}>
-        <AudioService classes={classes} />
-      </div>
+      <AudService />
     </ThemeProvider>
   );
 }

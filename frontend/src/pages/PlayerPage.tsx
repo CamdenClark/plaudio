@@ -12,6 +12,9 @@ import { ThumbDown, ThumbUp } from "@material-ui/icons";
 import { makeStyles } from "@material-ui/core/styles";
 import { Sound } from "../models/Sound";
 
+import { useHistory } from "react-router-dom";
+import { Listen } from "../models/Listen";
+
 const useStyles = makeStyles((theme) => ({
   main: {
     marginTop: theme.spacing(2),
@@ -32,59 +35,95 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 type PlayerPageProps = {
-  sound: Sound;
+  listen: Listen | null;
+  loadSounds: (options?: { soundId?: string; next?: boolean }) => void;
   onVote: (vote: number) => Promise<void>;
+  sound: Sound | null;
+  togglePlayPause: () => void;
 };
 
-export function PlayerPage({ onVote, sound }: PlayerPageProps) {
+export function PlayerPage({
+  listen,
+  loadSounds,
+  sound,
+  togglePlayPause,
+  onVote,
+}: PlayerPageProps) {
   const classes = useStyles();
+  const history = useHistory();
+
+  const vote = listen?.vote ? listen.vote : 0;
+
+  React.useEffect(() => {
+    if (!sound) {
+      if (history.location.pathname === "/") {
+        loadSounds();
+      } else {
+        loadSounds({ soundId: history.location.pathname.substr(1) });
+      }
+    } else {
+      history.push(`/${sound.soundId}`);
+    }
+  }, [sound, history, loadSounds]);
+
+  React.useEffect(() => {
+    const handler = (event: KeyboardEvent) => {
+      if (
+        event.code === "Space" &&
+        !["Play", "Pause", "Next", "Previous"].includes(
+          (event.target as any)?.ariaLabel
+        )
+      ) {
+        togglePlayPause();
+      }
+    };
+    document.addEventListener("keypress", handler);
+    return () => document.removeEventListener("keypress", handler);
+  }, [togglePlayPause]);
+
   return (
     <Container className={classes.main}>
       <Grid container direction="row" justify="center" alignItems="center">
         <Grid item xs={12} sm={9} md={6}>
-          <Card>
-            <CardContent>
-              <Typography style={{ fontSize: "0.9rem" }}>
-                from user {sound.userId}
-              </Typography>
-              <Typography
-                style={{ fontSize: "1.8rem", textOverflow: "ellipsis" }}
-              >
-                {sound.text}
-              </Typography>
-            </CardContent>
-            <CardActions>
-              <IconButton
-                aria-label={
-                  sound.userVote === -1 ? "Remove downvote" : "Downvote"
-                }
-                onClick={() => {
-                  sound.userVote === -1 ? onVote(0) : onVote(-1);
-                }}
-              >
-                <ThumbDown
-                  className={
-                    sound.userVote === -1
-                      ? classes.downvoteActive
-                      : classes.vote
-                  }
-                />
-              </IconButton>
-              {sound.score + (sound.userVote || 0)}
-              <IconButton
-                aria-label={sound.userVote === 1 ? "Remove upvote" : "Upvote"}
-                onClick={() => {
-                  sound.userVote === 1 ? onVote(0) : onVote(1);
-                }}
-              >
-                <ThumbUp
-                  className={
-                    sound.userVote === 1 ? classes.upvoteActive : classes.vote
-                  }
-                />
-              </IconButton>
-            </CardActions>
-          </Card>
+          {sound && (
+            <Card>
+              <CardContent>
+                <Typography style={{ fontSize: "0.9rem" }}>
+                  from user {sound.userId}
+                </Typography>
+                <Typography
+                  style={{ fontSize: "1.8rem", textOverflow: "ellipsis" }}
+                >
+                  {sound.text}
+                </Typography>
+              </CardContent>
+              <CardActions>
+                <IconButton
+                  aria-label={vote === -1 ? "Remove downvote" : "Downvote"}
+                  onClick={() => {
+                    vote === -1 ? onVote(0) : onVote(-1);
+                  }}
+                >
+                  <ThumbDown
+                    className={
+                      vote === -1 ? classes.downvoteActive : classes.vote
+                    }
+                  />
+                </IconButton>
+                {sound.score + (vote || 0)}
+                <IconButton
+                  aria-label={vote === 1 ? "Remove upvote" : "Upvote"}
+                  onClick={() => {
+                    vote === 1 ? onVote(0) : onVote(1);
+                  }}
+                >
+                  <ThumbUp
+                    className={vote === 1 ? classes.upvoteActive : classes.vote}
+                  />
+                </IconButton>
+              </CardActions>
+            </Card>
+          )}
         </Grid>
       </Grid>
     </Container>
