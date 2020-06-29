@@ -21,7 +21,7 @@ const Signup = () => {
               onChange={(e) =>
                 setState({ ...state, email: e.target.value || "" })
               }
-            ></TextField>
+            />
             <TextField
               aria-describedby={"Password"}
               label={"Password"}
@@ -30,7 +30,7 @@ const Signup = () => {
               onChange={(e) =>
                 setState({ ...state, password: e.target.value || "" })
               }
-            ></TextField>
+            />
             <Button
               onClick={() => {
                 firebase?.doCreateUserWithEmailAndPassword(

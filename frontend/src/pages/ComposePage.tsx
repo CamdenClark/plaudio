@@ -42,7 +42,6 @@ export function ComposePage({ onSubmit, api }: ComposePageProps) {
   return (
     <Container>
       <Grid container direction="row" justify="center">
-        <SomeFirebaseComponent />
         <Grid
           container
           item
