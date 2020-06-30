@@ -1,7 +1,8 @@
-import React from "react";
+import React, { useContext } from "react";
 
 import { FirebaseContext } from "../Firebase";
 import { TextField, Button, makeStyles } from "@material-ui/core";
+import { useHistory } from "react-router-dom";
 
 const useStyles = makeStyles((theme) => ({
   signinButton: {
@@ -15,45 +16,44 @@ const Signin = () => {
     password: "",
   });
   const classes = useStyles();
+  const firebase = useContext(FirebaseContext);
+  const history = useHistory();
 
   const { email, password } = state;
 
   return (
-    <FirebaseContext.Consumer>
-      {(firebase) => {
-        return (
-          <>
-            <TextField
-              id={"Email"}
-              label={"Email"}
-              variant={"outlined"}
-              style={{ minWidth: 100 }}
-              onChange={(e) =>
-                setState({ ...state, email: e.target.value || "" })
+    <>
+      <TextField
+        id={"Email"}
+        label={"Email"}
+        variant={"outlined"}
+        style={{ minWidth: 100 }}
+        onChange={(e) => setState({ ...state, email: e.target.value || "" })}
+      />
+      <TextField
+        id={"Password"}
+        label={"Password"}
+        variant={"outlined"}
+        type={"password"}
+        style={{ minWidth: 100, marginTop: 20 }}
+        onChange={(e) => setState({ ...state, password: e.target.value || "" })}
+      />
+      <Button
+        onClick={() => {
+          firebase
+            ?.doSignInWithEmailAndPassword(email, password)
+            .then((user) => {
+              if (user) {
+                history.push(`/`);
               }
-            />
-            <TextField
-              id={"Password"}
-              label={"Password"}
-              variant={"outlined"}
-              style={{ minWidth: 100, marginTop: 20 }}
-              onChange={(e) =>
-                setState({ ...state, password: e.target.value || "" })
-              }
-            />
-            <Button
-              onClick={() => {
-                firebase?.doCreateUserWithEmailAndPassword(email, password);
-              }}
-              variant={"outlined"}
-              className={classes.signinButton}
-            >
-              Sign In
-            </Button>
-          </>
-        );
-      }}
-    </FirebaseContext.Consumer>
+            });
+        }}
+        variant={"outlined"}
+        className={classes.signinButton}
+      >
+        Sign In
+      </Button>
+    </>
   );
 };
 

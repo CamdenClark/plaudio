@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { BrowserRouter as Router, Switch, Route } from "react-router-dom";
 
 import { createMuiTheme, ThemeProvider } from "@material-ui/core/styles";
@@ -10,7 +10,15 @@ import { Sound, UserSound } from "./models/Sound";
 import { Listen } from "./models/Listen";
 
 import { IAPI, RealAPI } from "./sources/API";
-import { ComposePage, PlayerPage, SigninPage, SignupPage } from "./pages";
+import {
+  ComposePage,
+  PlayerPage,
+  ProfilePage,
+  SigninPage,
+  SignupPage,
+} from "./pages";
+import { FirebaseContext } from "./components/Firebase";
+import { UserContext } from "./components/User";
 
 interface Dictionary<T> {
   [key: string]: T;
@@ -114,7 +122,6 @@ class AudioService extends React.Component<{}, AudioServiceState> {
 
   onNext = async () => {
     const { queue, queuePosition } = this.state;
-    this.player.pause();
     if (queuePosition >= queue.length - 1) {
       this.loadSounds({ next: true });
     } else {
@@ -219,6 +226,9 @@ class AudioService extends React.Component<{}, AudioServiceState> {
           <Header soundId={soundId} />
           <div style={{ flex: "1 0 auto" }}>
             <Switch>
+              <Route path={`/profile`}>
+                <ProfilePage />
+              </Route>
               <Route path={`/signup`}>
                 <SignupPage />
               </Route>
@@ -273,10 +283,26 @@ const theme = createMuiTheme({
 });
 
 function App() {
+  const firebase = useContext(FirebaseContext);
+  const [user, setUser] = useState({ loggedIn: false, email: "" });
+
+  useEffect(() => {
+    const unsub = firebase?.auth.onAuthStateChanged((user) => {
+      if (user) {
+        setUser({ loggedIn: true, email: user.email || "" });
+      } else {
+        setUser({ loggedIn: false, email: "" });
+      }
+    });
+    return unsub;
+  });
+
   return (
-    <ThemeProvider theme={theme}>
-      <AudioService />
-    </ThemeProvider>
+    <UserContext.Provider value={user}>
+      <ThemeProvider theme={theme}>
+        <AudioService />
+      </ThemeProvider>
+    </UserContext.Provider>
   );
 }
 

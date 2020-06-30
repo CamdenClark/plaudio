@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useContext } from "react";
 import {
   AppBar,
   IconButton,
@@ -10,6 +10,8 @@ import { Edit, AccountCircle } from "@material-ui/icons";
 import { makeStyles } from "@material-ui/core/styles";
 
 import { Link as RouterLink, useHistory } from "react-router-dom";
+
+import { UserContext } from "../User";
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -38,6 +40,8 @@ const useStyles = makeStyles((theme) => ({
 export const Header = ({ soundId }: { soundId: string | null }) => {
   const classes = useStyles();
   const history = useHistory();
+  const user = useContext(UserContext);
+
   return (
     <AppBar position="static">
       <Toolbar>
@@ -52,17 +56,21 @@ export const Header = ({ soundId }: { soundId: string | null }) => {
             homophone
           </Link>
         </Typography>
+        {user.loggedIn && (
+          <IconButton
+            aria-label={"Compose"}
+            color={"inherit"}
+            onClick={() => history.push("/compose")}
+          >
+            <Edit />
+          </IconButton>
+        )}
         <IconButton
-          aria-label={"Compose"}
+          aria-label={user.loggedIn ? "Profile" : "Sign in"}
           color={"inherit"}
-          onClick={() => history.push("/compose")}
-        >
-          <Edit />
-        </IconButton>
-        <IconButton
-          aria-label={"Signup"}
-          color={"inherit"}
-          onClick={() => history.push("/signin")}
+          onClick={() =>
+            user.loggedIn ? history.push("/profile") : history.push("/signin")
+          }
         >
           <AccountCircle />
         </IconButton>
