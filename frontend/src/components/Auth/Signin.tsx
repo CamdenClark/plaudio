@@ -4,23 +4,19 @@ import { FirebaseContext } from "../Firebase";
 import { TextField, Button, makeStyles } from "@material-ui/core";
 
 const useStyles = makeStyles((theme) => ({
-  signupButton: {
+  signinButton: {
     marginTop: "1rem",
   },
 }));
 
-const Signup = () => {
-  const classes = useStyles();
-
+const Signin = () => {
   const [state, setState] = React.useState({
     email: "",
     password: "",
-    confirm: "",
   });
+  const classes = useStyles();
 
-  const { confirm, email, password } = state;
-
-  const passwordInvalid = password !== confirm;
+  const { email, password } = state;
 
   return (
     <FirebaseContext.Consumer>
@@ -45,25 +41,14 @@ const Signup = () => {
                 setState({ ...state, password: e.target.value || "" })
               }
             />
-            <TextField
-              aria-describedby={"Confirm Password"}
-              label={"Confirm Password"}
-              variant={"outlined"}
-              style={{ minWidth: 100, marginTop: 20 }}
-              error={passwordInvalid}
-              helperText={passwordInvalid && "Passwords don't match"}
-              onChange={(e) =>
-                setState({ ...state, confirm: e.target.value || "" })
-              }
-            />
             <Button
               onClick={() => {
                 firebase?.doCreateUserWithEmailAndPassword(email, password);
               }}
               variant={"outlined"}
-              className={classes.signupButton}
+              className={classes.signinButton}
             >
-              Signup
+              Sign In
             </Button>
           </>
         );
@@ -72,4 +57,4 @@ const Signup = () => {
   );
 };
 
-export default Signup;
+export default Signin;

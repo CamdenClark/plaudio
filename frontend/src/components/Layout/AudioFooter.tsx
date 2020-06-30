@@ -6,8 +6,8 @@ import { makeStyles } from "@material-ui/core/styles";
 const useStyles = makeStyles((theme) => ({
   footer: {
     padding: theme.spacing(3, 2),
+    flexShrink: 0,
     marginTop: "auto",
-    position: "sticky",
     borderTop: "1px solid " + theme.palette.grey[300],
   },
 }));
@@ -37,7 +37,9 @@ export function AudioFooter({
             <Grid item style={{ maxWidth: 140 }}>
               <Typography noWrap>{sound.text}</Typography>
             </Grid>
-            <Grid item>user {sound.userId}</Grid>
+            <Grid item>
+              <Typography noWrap>user {sound.userId}</Typography>
+            </Grid>
           </Grid>
           <Grid
             container
@@ -81,10 +83,12 @@ export function AudioFooter({
             sm={3}
           >
             <Grid item>
-              {renderDuration(
-                audioState.currentTime || 0,
-                audioState.duration || 0
-              )}
+              <Typography>
+                {renderDuration(
+                  audioState.currentTime || 0,
+                  audioState.duration || 0
+                )}
+              </Typography>
             </Grid>
           </Grid>
         </Grid>

@@ -9,7 +9,7 @@ import {
 import { Edit, AccountCircle } from "@material-ui/icons";
 import { makeStyles } from "@material-ui/core/styles";
 
-import { useHistory } from "react-router-dom";
+import { Link as RouterLink, useHistory } from "react-router-dom";
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -43,9 +43,10 @@ export const Header = ({ soundId }: { soundId: string | null }) => {
       <Toolbar>
         <Typography variant="h6" className={classes.title}>
           <Link
-            onClick={() => history.push(`/${soundId || ""}`)}
-            color="inherit"
+            component={RouterLink}
+            to={`/${soundId || ""}`}
             className={classes.titleLink}
+            color="inherit"
           >
             homophone
           </Link>
@@ -60,7 +61,7 @@ export const Header = ({ soundId }: { soundId: string | null }) => {
         <IconButton
           aria-label={"Signup"}
           color={"inherit"}
-          onClick={() => history.push("/signup")}
+          onClick={() => history.push("/signin")}
         >
           <AccountCircle />
         </IconButton>

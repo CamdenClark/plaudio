@@ -1,16 +1,20 @@
 import React from "react";
-import Signup from "../components/Auth/Signup";
+import Signin from "../components/Auth/Signin";
 
-import { Container, Grid, Link, Typography } from "@material-ui/core";
+import {
+  Container,
+  Grid,
+  Link,
+  Typography,
+  makeStyles,
+} from "@material-ui/core";
 import { Link as RouterLink } from "react-router-dom";
 
-import { makeStyles } from "@material-ui/core";
-
 const useStyles = makeStyles((theme) => ({
-  signinLink: { marginTop: "2rem" },
+  signupLink: { marginTop: "2rem" },
 }));
 
-export const SignupPage = () => {
+export const SigninPage = () => {
   const classes = useStyles();
 
   return (
@@ -26,10 +30,10 @@ export const SignupPage = () => {
           justify="center"
           style={{ marginTop: 40 }}
         >
-          <Signup />
-          <Typography className={classes.signinLink}>
-            <Link component={RouterLink} to={`/signin`}>
-              Already have an account?
+          <Signin />
+          <Typography className={classes.signupLink}>
+            <Link component={RouterLink} to={`/signup`}>
+              Don't have an account yet?
             </Link>
           </Typography>
         </Grid>

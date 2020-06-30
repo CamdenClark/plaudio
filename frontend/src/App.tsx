@@ -10,7 +10,7 @@ import { Sound, UserSound } from "./models/Sound";
 import { Listen } from "./models/Listen";
 
 import { IAPI, RealAPI } from "./sources/API";
-import { ComposePage, PlayerPage, SignupPage } from "./pages";
+import { ComposePage, PlayerPage, SigninPage, SignupPage } from "./pages";
 
 interface Dictionary<T> {
   [key: string]: T;
@@ -209,43 +209,56 @@ class AudioService extends React.Component<{}, AudioServiceState> {
     const listen = soundId && soundId.length > 0 ? listens[soundId] : null;
     return (
       <Router>
-        <Header soundId={soundId} />
-        <Switch>
-          <Route path={`/signup`}>
-            <SignupPage />
-          </Route>
-          <Route path={`/compose`}>
-            <ComposePage onSubmit={this.onSubmit} api={this.api} />
-          </Route>
-          <Route path={`/:soundId`}>
-            <PlayerPage
-              listen={listen}
-              loadSounds={this.loadSounds}
-              onVote={this.onVote}
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            minHeight: "100vh",
+          }}
+        >
+          <Header soundId={soundId} />
+          <div style={{ flex: "1 0 auto" }}>
+            <Switch>
+              <Route path={`/signup`}>
+                <SignupPage />
+              </Route>
+              <Route path={`/signin`}>
+                <SigninPage />
+              </Route>
+              <Route path={`/compose`}>
+                <ComposePage onSubmit={this.onSubmit} api={this.api} />
+              </Route>
+              <Route path={`/:soundId`}>
+                <PlayerPage
+                  listen={listen}
+                  loadSounds={this.loadSounds}
+                  onVote={this.onVote}
+                  sound={sound}
+                  togglePlayPause={this.onToggle}
+                />
+              </Route>
+              <Route path={`/`}>
+                <PlayerPage
+                  listen={listen}
+                  loadSounds={this.loadSounds}
+                  onVote={this.onVote}
+                  sound={sound}
+                  togglePlayPause={this.onToggle}
+                />
+              </Route>
+            </Switch>
+          </div>
+          {sound && (
+            <AudioFooter
+              audioState={audioState}
               sound={sound}
-              togglePlayPause={this.onToggle}
+              onPause={this.onPause}
+              onPrevious={this.onPrevious}
+              onPlay={this.onPlay}
+              onNext={this.onNext}
             />
-          </Route>
-          <Route path={`/`}>
-            <PlayerPage
-              listen={listen}
-              loadSounds={this.loadSounds}
-              onVote={this.onVote}
-              sound={sound}
-              togglePlayPause={this.onToggle}
-            />
-          </Route>
-        </Switch>
-        {sound && (
-          <AudioFooter
-            audioState={audioState}
-            sound={sound}
-            onPause={this.onPause}
-            onPrevious={this.onPrevious}
-            onPlay={this.onPlay}
-            onNext={this.onNext}
-          />
-        )}
+          )}
+        </div>
       </Router>
     );
   }
