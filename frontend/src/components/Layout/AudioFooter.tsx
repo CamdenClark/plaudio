@@ -34,10 +34,10 @@ export function AudioFooter({
             xs={12}
             sm={3}
           >
-            <Grid item style={{ maxWidth: 140 }}>
+            <Grid item style={{ maxWidth: "80%" }}>
               <Typography noWrap>{sound.text}</Typography>
             </Grid>
-            <Grid item>
+            <Grid item style={{ maxWidth: "80%" }}>
               <Typography noWrap>user {sound.userId}</Typography>
             </Grid>
           </Grid>

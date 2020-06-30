@@ -43,6 +43,7 @@ export const Header = ({ soundId }: { soundId: string | null }) => {
       <Toolbar>
         <Typography variant="h6" className={classes.title}>
           <Link
+            aria-label={"Return home"}
             component={RouterLink}
             to={`/${soundId || ""}`}
             className={classes.titleLink}
