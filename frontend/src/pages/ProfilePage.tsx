@@ -1,5 +1,5 @@
 import React, { useContext } from "react";
-import { UserContext } from "../components/User";
+import { AuthContext } from "../components/User";
 import { Container, Grid, Button } from "@material-ui/core";
 import { FirebaseContext } from "../components/Firebase";
 
@@ -7,7 +7,7 @@ import { useHistory } from "react-router-dom";
 
 export const ProfilePage = () => {
   const firebase = useContext(FirebaseContext);
-  const user = useContext(UserContext);
+  const auth = useContext(AuthContext);
   const history = useHistory();
 
   return (
@@ -23,7 +23,7 @@ export const ProfilePage = () => {
           justify="center"
           style={{ marginTop: 40 }}
         >
-          {user && user.email}
+          {auth && auth.user && auth.user.email}
           <Button
             onClick={() => {
               firebase?.doSignOut();

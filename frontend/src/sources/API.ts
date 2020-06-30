@@ -69,41 +69,69 @@ export class RealAPI implements IAPI {
     baseURL: "http://api.homophone.io",
   });
 
-  vote(soundId: string, vote: number): Promise<void> {
-    return this.client
-      .post(`/sounds/${soundId}/vote`, { vote })
-      .then((response) => {
-        console.log(`Response: ${response.data}`);
-        return response.data;
-      });
+  user?: firebase.User;
+
+  constructor(user?: firebase.User) {
+    if (user) {
+      this.user = user;
+    }
   }
 
-  submit(sound: UserSound): Promise<Sound> {
-    return this.client.post(`/sounds`, sound).then((response) => {
-      console.log(`Response: ${response.data}`);
-      return response.data;
-    });
+  async getIdToken() {
+    if (this.user) {
+      return await this.user.getIdToken();
+    }
+    return "";
   }
 
-  loadSound(soundId: string): Promise<Sound> {
-    return this.client
-      .get(`/sounds/${soundId}`)
-      .then((response) => response.data);
+  async getConfig(headers?: object) {
+    const token = await this.getIdToken();
+    if (token) {
+      return {
+        headers: {
+          ...headers,
+          Authentication: "Bearer " + token,
+        },
+      };
+    }
+    return {};
   }
 
-  loadSounds(page: number): Promise<Sound[]> {
-    return this.client.get("/sounds").then((response) => response.data);
+  async vote(soundId: string, vote: number): Promise<void> {
+    const config = await this.getConfig();
+    const response = await this.client.post(
+      `/sounds/${soundId}/vote`,
+      { vote },
+      config
+    );
+    return response.data;
   }
 
-  upload(file: File): Promise<RawSound> {
+  async submit(sound: UserSound): Promise<Sound> {
+    const config = await this.getConfig();
+    const response = await this.client.post(`/sounds`, sound, config);
+    return response.data;
+  }
+
+  async loadSound(soundId: string): Promise<Sound> {
+    const config = await this.getConfig();
+    const response = await this.client.get(`/sounds/${soundId}`, config);
+    return response.data;
+  }
+
+  async loadSounds(page: number): Promise<Sound[]> {
+    const config = await this.getConfig();
+    const response = await this.client.get(`/sounds`, config);
+    return response.data;
+  }
+
+  async upload(file: File): Promise<RawSound> {
     const formData = new FormData();
     formData.append("file", file);
-    return this.client
-      .post("/files", formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      })
-      .then((response) => response.data);
+    const config = await this.getConfig({
+      "Content-Type": "multipart/form-data",
+    });
+    const response = await this.client.post(`/files`, formData, config);
+    return response.data;
   }
 }

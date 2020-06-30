@@ -1,7 +1,17 @@
 import React from "react";
+import { IAPI, RealAPI } from "../../sources/API";
 
-const defaultUser = { loggedIn: false, email: "" };
+export type Auth = {
+  user?: firebase.User;
+  loggedIn: boolean;
+  api: IAPI;
+};
 
-const UserContext = React.createContext(defaultUser);
+const defaultUser: Auth = {
+  loggedIn: false,
+  api: new RealAPI(),
+};
 
-export default UserContext;
+const AuthContext = React.createContext(defaultUser);
+
+export default AuthContext;

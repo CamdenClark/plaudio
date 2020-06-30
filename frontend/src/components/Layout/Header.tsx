@@ -11,7 +11,7 @@ import { makeStyles } from "@material-ui/core/styles";
 
 import { Link as RouterLink, useHistory } from "react-router-dom";
 
-import { UserContext } from "../User";
+import { AuthContext } from "../User";
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -40,7 +40,7 @@ const useStyles = makeStyles((theme) => ({
 export const Header = ({ soundId }: { soundId: string | null }) => {
   const classes = useStyles();
   const history = useHistory();
-  const user = useContext(UserContext);
+  const auth = useContext(AuthContext);
 
   return (
     <AppBar position="static">
@@ -56,7 +56,7 @@ export const Header = ({ soundId }: { soundId: string | null }) => {
             homophone
           </Link>
         </Typography>
-        {user.loggedIn && (
+        {auth.loggedIn && (
           <IconButton
             aria-label={"Compose"}
             color={"inherit"}
@@ -66,10 +66,10 @@ export const Header = ({ soundId }: { soundId: string | null }) => {
           </IconButton>
         )}
         <IconButton
-          aria-label={user.loggedIn ? "Profile" : "Sign in"}
+          aria-label={auth.loggedIn ? "Profile" : "Sign in"}
           color={"inherit"}
           onClick={() =>
-            user.loggedIn ? history.push("/profile") : history.push("/signin")
+            auth.loggedIn ? history.push("/profile") : history.push("/signin")
           }
         >
           <AccountCircle />

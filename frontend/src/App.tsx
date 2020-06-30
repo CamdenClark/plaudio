@@ -18,7 +18,8 @@ import {
   SignupPage,
 } from "./pages";
 import { FirebaseContext } from "./components/Firebase";
-import { UserContext } from "./components/User";
+import { AuthContext } from "./components/User";
+import { Auth } from "./components/User/context";
 
 interface Dictionary<T> {
   [key: string]: T;
@@ -30,6 +31,10 @@ type AudioState = {
   currentTime: number;
 };
 
+type AudioServiceProps = {
+  api: IAPI;
+};
+
 type AudioServiceState = {
   audioState: AudioState;
   queue: string[];
@@ -38,9 +43,11 @@ type AudioServiceState = {
   listens: Dictionary<Listen>;
 };
 
-class AudioService extends React.Component<{}, AudioServiceState> {
+class AudioService extends React.Component<
+  AudioServiceProps,
+  AudioServiceState
+> {
   player: HTMLAudioElement = new Audio();
-  api: IAPI = new RealAPI();
 
   state: AudioServiceState = {
     audioState: { playing: false, duration: 0, currentTime: 0 },
@@ -66,11 +73,11 @@ class AudioService extends React.Component<{}, AudioServiceState> {
   }
 
   async loadSound(soundId: string): Promise<Sound> {
-    return this.api.loadSound(soundId);
+    return this.props.api.loadSound(soundId);
   }
 
   async loadMoreQueueItems(): Promise<Sound[]> {
-    return this.api.loadSounds(0);
+    return this.props.api.loadSounds(0);
   }
 
   getSoundId = () => {
@@ -162,7 +169,7 @@ class AudioService extends React.Component<{}, AudioServiceState> {
           },
         },
       });
-      return this.api.vote(soundId, vote);
+      return this.props.api.vote(soundId, vote);
     }
     return new Promise((resolve, _) => {
       resolve();
@@ -170,7 +177,7 @@ class AudioService extends React.Component<{}, AudioServiceState> {
   };
 
   onSubmit = (sound: UserSound): Promise<Sound> => {
-    return this.api.submit(sound);
+    return this.props.api.submit(sound);
   };
 
   loadSounds = (options?: { soundId?: string; next?: boolean }) => {
@@ -236,7 +243,7 @@ class AudioService extends React.Component<{}, AudioServiceState> {
                 <SigninPage />
               </Route>
               <Route path={`/compose`}>
-                <ComposePage onSubmit={this.onSubmit} api={this.api} />
+                <ComposePage onSubmit={this.onSubmit} api={this.props.api} />
               </Route>
               <Route path={`/:soundId`}>
                 <PlayerPage
@@ -284,25 +291,32 @@ const theme = createMuiTheme({
 
 function App() {
   const firebase = useContext(FirebaseContext);
-  const [user, setUser] = useState({ loggedIn: false, email: "" });
+  const [auth, setAuth] = useState<Auth>({
+    loggedIn: false,
+    api: new RealAPI(),
+  });
 
   useEffect(() => {
+    console.log("effect used");
     const unsub = firebase?.auth.onAuthStateChanged((user) => {
+      console.log("Auth state changed");
       if (user) {
-        setUser({ loggedIn: true, email: user.email || "" });
+        const api = new RealAPI(user);
+        setAuth({ loggedIn: true, user, api });
       } else {
-        setUser({ loggedIn: false, email: "" });
+        const api = new RealAPI();
+        setAuth({ loggedIn: false, api });
       }
     });
     return unsub;
-  });
+  }, [firebase]);
 
   return (
-    <UserContext.Provider value={user}>
+    <AuthContext.Provider value={auth}>
       <ThemeProvider theme={theme}>
-        <AudioService />
+        <AudioService api={auth.api} />
       </ThemeProvider>
-    </UserContext.Provider>
+    </AuthContext.Provider>
   );
 }
 

@@ -29,6 +29,7 @@ export function ComposePage({ onSubmit, api }: ComposePageProps) {
     rawFile: null,
     userId: "",
   };
+  console.log("rerender");
   const [state, setState] = React.useState(defaultState);
   const { userId, text, rawFile, audioFile } = state;
   React.useEffect(() => {
