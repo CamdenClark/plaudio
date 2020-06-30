@@ -28,7 +28,7 @@ const Signup = () => {
         return (
           <>
             <TextField
-              aria-label={"Email"}
+              id={"Email"}
               label={"Email"}
               variant={"outlined"}
               style={{ minWidth: 100 }}
@@ -37,7 +37,7 @@ const Signup = () => {
               }
             />
             <TextField
-              aria-describedby={"Password"}
+              id={"Password"}
               label={"Password"}
               variant={"outlined"}
               style={{ minWidth: 100, marginTop: 20 }}
@@ -46,7 +46,7 @@ const Signup = () => {
               }
             />
             <TextField
-              aria-describedby={"Confirm Password"}
+              id={"Confirm Password"}
               label={"Confirm Password"}
               variant={"outlined"}
               style={{ minWidth: 100, marginTop: 20 }}
