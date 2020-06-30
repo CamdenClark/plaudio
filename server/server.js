@@ -3,6 +3,7 @@ const bodyParser = require("body-parser");
 const cors = require("cors");
 const shortid = require("shortid");
 const Multer = require("multer");
+const admin = require("firebase-admin");
 
 const Firestore = require("@google-cloud/firestore");
 const { PubSub } = require("@google-cloud/pubsub");
@@ -14,9 +15,38 @@ const TOPIC_NAME = "text-to-speech";
 const topic = pubsub.topic(TOPIC_NAME);
 const voteTopic = pubsub.topic("vote-trigger");
 
+admin.initializeApp();
+
 const db = new Firestore({
   projectid: "homophone",
 });
+
+const getAuthToken = (req, res, next) => {
+  if (
+    req.headers.authorization &&
+    req.headers.authorization.split(" ")[0] === "Bearer"
+  ) {
+    req.authToken = req.headers.authorization.split(" ")[1];
+  } else {
+    req.authToken = null;
+  }
+  next();
+};
+
+const checkIfAuthenticated = (req, res, next) => {
+  getAuthToken(req, res, async () => {
+    try {
+      const { authToken } = req;
+      const userInfo = await admin.auth().verifyIdToken(authToken);
+      req.authId = userInfo.uid;
+      return next();
+    } catch (e) {
+      return res
+        .status(401)
+        .send({ error: "You are not authorized to make this request" });
+    }
+  });
+};
 
 const app = express();
 app.use(bodyParser.json({ extended: true }));
@@ -50,7 +80,7 @@ app.get("/sounds", async (req, res) => {
   res.send(docs.map((doc) => doc.data()).map(renderSound));
 });
 
-app.post("/sounds", async (req, res) => {
+app.post("/sounds", checkIfAuthenticated, async (req, res) => {
   const { text, userId, sourceFile } = req.body;
   const soundId = "snd-" + shortid.generate();
   console.log(

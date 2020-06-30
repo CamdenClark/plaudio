@@ -90,7 +90,7 @@ export class RealAPI implements IAPI {
       return {
         headers: {
           ...headers,
-          Authentication: "Bearer " + token,
+          Authorization: "Bearer " + token,
         },
       };
     }
