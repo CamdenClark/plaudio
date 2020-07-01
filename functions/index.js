@@ -1,33 +1,45 @@
-const Firestore = require('@google-cloud/firestore');
+const Firestore = require("@google-cloud/firestore");
 
 const firestore = new Firestore({
-    projectid: 'homophone',
+  projectid: "homophone",
 });
 
-exports.computeScore = async pubSubEvent => {
-    const { soundId, scoreDelta } = JSON.parse(
-        Buffer.from(pubSubEvent.data, 'base64').toString()
-    );
+exports.registerUser = async (firebaseUser) => {
+  const userDocument = firestore.doc(`users/${firebaseUser.uid}`);
+  const user = await userDocument.set({
+    id: firebaseUser.uid,
+    email: firebaseUser.email,
+    admin: false,
+  });
+  console.log(`Created user ${user.id}`);
+};
 
-    console.log(`Updating sound ${soundId} with score delta ${scoreDelta}`);
-    const soundDocument = firestore.doc(`sounds/${soundId}`);
-    const sound = await soundDocument.get();
-    const { createdAt, score } = sound.data();
+exports.computeScore = async (pubSubEvent) => {
+  const { soundId, scoreDelta } = JSON.parse(
+    Buffer.from(pubSubEvent.data, "base64").toString()
+  );
 
-    const newScore = score + scoreDelta;
-    console.log(`Computed document with score ${newScore} and created at ${createdAt.seconds}`);
+  console.log(`Updating sound ${soundId} with score delta ${scoreDelta}`);
+  const soundDocument = firestore.doc(`sounds/${soundId}`);
+  const sound = await soundDocument.get();
+  const { createdAt, score } = sound.data();
 
-    const tS = createdAt.seconds - 1590285563;
-    const y = newScore > 0 ? 1 : newScore === 0 ? 0 : -1;
-    const z = Math.abs(newScore) < 1 ? 1 : Math.abs(newScore);
-    const computedScore = Math.log10(z) + ((y * tS) / 45000);
-    console.log(`New computed score for ${soundId}: ${computedScore}`);
+  const newScore = score + scoreDelta;
+  console.log(
+    `Computed document with score ${newScore} and created at ${createdAt.seconds}`
+  );
 
-    await soundDocument.update({
-        score: newScore,
-        computedScore
-    });
-    console.log(`Updated sound succesfully`);
+  const tS = createdAt.seconds - 1590285563;
+  const y = newScore > 0 ? 1 : newScore === 0 ? 0 : -1;
+  const z = Math.abs(newScore) < 1 ? 1 : Math.abs(newScore);
+  const computedScore = Math.log10(z) + (y * tS) / 45000;
+  console.log(`New computed score for ${soundId}: ${computedScore}`);
 
-    res.sendStatus(200);
+  await soundDocument.update({
+    score: newScore,
+    computedScore,
+  });
+  console.log(`Updated sound succesfully`);
+
+  res.sendStatus(200);
 };

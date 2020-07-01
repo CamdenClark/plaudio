@@ -1,6 +1,7 @@
 import axios, { AxiosInstance } from "axios";
-import { Sound, UserSound } from "../models/Sound";
 import { RawSound } from "../models/RawSound";
+import { Sound, UserSound } from "../models/Sound";
+import { User } from "../models/User";
 
 export interface IAPI {
   vote(soundId: string, vote: number): Promise<void>;
@@ -8,6 +9,8 @@ export interface IAPI {
   loadSounds(page: number): Promise<Sound[]>;
   loadSound(soundId: string): Promise<Sound>;
   upload(file: File): Promise<RawSound>;
+  me(): Promise<User>;
+  updateProfile(profile: Partial<User>): Promise<void>;
 }
 
 const sounds: Sound[] = [
@@ -16,18 +19,18 @@ const sounds: Sound[] = [
     text: "Biden test 1",
     url: "https://storage.googleapis.com/homophone-test/snd-biden8.mp3",
     score: 2,
-    userVote: 0,
     createdAt: 1590306971,
-    userId: "Bruh",
+    userId: "userid",
+    displayName: "Bruh",
   },
   {
     soundId: "snd-biden2",
     text: "Biden test 2",
     url: "https://storage.cloud.google.com/homophone-test/snd-vivaldi.mp3",
     score: 2,
-    userVote: 0,
     createdAt: 1590306941,
-    userId: "Bruh",
+    userId: "userid",
+    displayName: "Bruh",
   },
 ];
 
@@ -41,7 +44,11 @@ export class MockAPI implements IAPI {
   submit(sound: UserSound): Promise<Sound> {
     return new Promise((resolve) => {
       console.log("submitted sound");
-      resolve({ ...sounds[1], text: sound.text, userId: sound.text });
+      resolve({
+        ...sounds[1],
+        text: sound.text,
+        displayName: sound.displayName,
+      });
     });
   }
 
@@ -60,6 +67,23 @@ export class MockAPI implements IAPI {
   upload(file: File): Promise<RawSound> {
     return new Promise((resolve) => {
       resolve({ fileId: "test", name: "test.mp3" });
+    });
+  }
+
+  me(): Promise<User> {
+    return new Promise((resolve) => {
+      resolve({
+        id: "userid",
+        email: "test@test.com",
+        admin: false,
+        name: "test",
+      });
+    });
+  }
+
+  updateProfile(profile: Partial<User>): Promise<void> {
+    return new Promise((resolve) => {
+      resolve();
     });
   }
 }
@@ -132,6 +156,18 @@ export class RealAPI implements IAPI {
       "Content-Type": "multipart/form-data",
     });
     const response = await this.client.post(`/files`, formData, config);
+    return response.data;
+  }
+
+  async me(): Promise<User> {
+    const config = await this.getConfig();
+    const response = await this.client.get(`/users/me`, config);
+    return response.data;
+  }
+
+  async updateProfile(profile: Partial<User>): Promise<void> {
+    const config = await this.getConfig();
+    const response = await this.client.put(`/users/me`, profile, config);
     return response.data;
   }
 }

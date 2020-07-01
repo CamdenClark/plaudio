@@ -1,8 +1,10 @@
 import React from "react";
 import { IAPI, RealAPI } from "../../sources/API";
+import { User } from "../../models/User";
 
 export type Auth = {
-  user?: firebase.User;
+  firebaseUser?: firebase.User;
+  user?: User;
   loggedIn: boolean;
   api: IAPI;
 };

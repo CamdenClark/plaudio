@@ -5,11 +5,11 @@ export interface Sound {
   createdAt: number;
   url: string;
   userId: string;
-  userVote: number;
+  displayName: string;
 }
 
 export interface UserSound {
   text: string;
-  userId: string;
+  displayName: string;
   sourceFile?: string;
 }

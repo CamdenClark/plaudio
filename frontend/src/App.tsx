@@ -80,6 +80,14 @@ class AudioService extends React.Component<
     return this.props.api.loadSounds(0);
   }
 
+  anySound = () => {
+    const { queue, queuePosition } = this.state;
+    if (queuePosition < 0 || queuePosition >= queue.length) {
+      return false;
+    }
+    return true;
+  };
+
   getSoundId = () => {
     const { queue, queuePosition } = this.state;
     return queue[queuePosition];
@@ -121,9 +129,11 @@ class AudioService extends React.Component<
 
   onResync = () => {
     const { audioState } = this.state;
-    this.player.src = this.getSound().url;
-    if (audioState.playing) {
-      this.player.play();
+    if (this.anySound()) {
+      this.player.src = this.getSound().url;
+      if (audioState.playing) {
+        this.player.play();
+      }
     }
   };
 
@@ -298,11 +308,13 @@ function App() {
 
   useEffect(() => {
     console.log("effect used");
-    const unsub = firebase?.auth.onAuthStateChanged((user) => {
+    const unsub = firebase?.auth.onAuthStateChanged((firebaseUser) => {
       console.log("Auth state changed");
-      if (user) {
-        const api = new RealAPI(user);
-        setAuth({ loggedIn: true, user, api });
+      if (firebaseUser) {
+        const api = new RealAPI(firebaseUser);
+        api.me().then((user) => {
+          setAuth({ api, firebaseUser, loggedIn: true, user });
+        });
       } else {
         const api = new RealAPI();
         setAuth({ loggedIn: false, api });

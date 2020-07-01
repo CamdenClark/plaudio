@@ -89,7 +89,7 @@ export function PlayerPage({
             <Card>
               <CardContent>
                 <Typography style={{ fontSize: "0.9rem" }}>
-                  from user {sound.userId}
+                  from user {sound.displayName}
                 </Typography>
                 <Typography
                   style={{ fontSize: "1.8rem", textOverflow: "ellipsis" }}

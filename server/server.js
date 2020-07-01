@@ -8,6 +8,7 @@ const admin = require("firebase-admin");
 const Firestore = require("@google-cloud/firestore");
 const { PubSub } = require("@google-cloud/pubsub");
 const { Storage } = require("@google-cloud/storage");
+const { auth } = require("firebase-admin");
 
 const pubsub = new PubSub();
 const storage = new Storage();
@@ -48,6 +49,12 @@ const checkIfAuthenticated = (req, res, next) => {
   });
 };
 
+const getUser = async (req) => {
+  const { authId } = req;
+  const userDocument = await db.doc(`users/${authId}`).get();
+  return userDocument.data();
+};
+
 const app = express();
 app.use(bodyParser.json({ extended: true }));
 app.use(cors({ origin: true }));
@@ -63,6 +70,7 @@ const renderSound = (sound) => ({
   createdAt: sound.createdAt.seconds,
   score: sound.score,
   userId: sound.userId,
+  displayName: sound.displayName,
   text: sound.text,
 });
 
@@ -81,15 +89,22 @@ app.get("/sounds", async (req, res) => {
 });
 
 app.post("/sounds", checkIfAuthenticated, async (req, res) => {
-  const { text, userId, sourceFile } = req.body;
+  const { text, displayName, sourceFile } = req.body;
   const soundId = "snd-" + shortid.generate();
+  const user = await getUser(req);
+  const name = user.admin ? displayName : user.name;
+  if (!name) {
+    res.status(400).send("Can't submit if you don't have a name");
+  }
   console.log(
-    `Creating sound with id ${soundId}, user id ${userId}, and text ${text}.`
+    `Creating sound with id ${soundId}, display name ${name}, and text ${text}.`
   );
+  const userId = user.id;
   const document = db.doc(`sounds/${soundId}`);
   await document.set({
     soundId,
     userId,
+    displayName: name,
     text,
     createdAt: new Date(Date.now()),
     score: 0,
@@ -103,7 +118,7 @@ app.post("/sounds", checkIfAuthenticated, async (req, res) => {
     JSON.stringify({
       text,
       soundId,
-      userId,
+      displayName: name,
       sourceFile: sourceFile || "",
     })
   );
@@ -128,9 +143,10 @@ app.get("/sounds/:soundId", async (req, res) => {
   res.send(sound);
 });
 
-app.post("/sounds/:soundId/vote", async (req, res) => {
+app.post("/sounds/:soundId/vote", checkIfAuthenticated, async (req, res) => {
   const { soundId } = req.params;
-  const { vote, userId } = req.body;
+  const userId = req.authId;
+  const { vote } = req.body;
   console.log(`Userid ${userId} votes ${vote} on ${soundId}`);
 
   const voteDocument = db.doc(`sounds/${soundId}/votes/${userId}`);
@@ -158,27 +174,47 @@ app.post("/sounds/:soundId/vote", async (req, res) => {
   res.sendStatus(200);
 });
 
-app.post("/files", multer.single("file"), async (req, res, next) => {
-  const { file } = req;
-  const fileId = "file-" + shortid.generate();
+app.post(
+  "/files",
+  checkIfAuthenticated,
+  multer.single("file"),
+  async (req, res, next) => {
+    const { file } = req;
+    const fileId = "file-" + shortid.generate();
 
-  const bucket = storage.bucket("homophone-test");
+    const bucket = storage.bucket("homophone-test");
 
-  const blob = bucket.file(file.originalname);
-  const blobStream = blob.createWriteStream();
+    const blob = bucket.file(file.originalname);
+    const blobStream = blob.createWriteStream();
 
-  blobStream.on("error", (err) => {
-    next(err);
-  });
-  blobStream.on("finish", async () => {
-    const audioFile = { fileId, name: file.originalname };
+    blobStream.on("error", (err) => {
+      next(err);
+    });
+    blobStream.on("finish", async () => {
+      const audioFile = { fileId, name: file.originalname, userId: req.authId };
 
-    const document = db.doc(`files/${fileId}`);
-    await document.set(audioFile);
-    res.send(audioFile);
-  });
+      const document = db.doc(`files/${fileId}`);
+      await document.set(audioFile);
+      res.send(audioFile);
+    });
 
-  blobStream.end(req.file.buffer);
+    blobStream.end(req.file.buffer);
+  }
+);
+
+app.get("/users/me", checkIfAuthenticated, async (req, res) => {
+  const user = await getUser(req);
+  res.send(user);
+});
+
+app.put("/users/me", checkIfAuthenticated, async (req, res) => {
+  const user = await getUser(req);
+  if (user.name) {
+    res.sendStatus(400);
+  }
+  const { name } = req.body;
+  await db.doc(`users/${req.authId}`).update({ name });
+  res.sendStatus(200);
 });
 
 const PORT = process.env.PORT || 8080;
