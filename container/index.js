@@ -40,7 +40,7 @@ app.post("/", async (req, res) => {
   console.log(`Synthesized speech for ${soundId}`);
   await writeFile(`${soundId}-tts.mp3`, response.audioContent, "binary");
   console.log(`Saved synthesized speech for ${soundId}`);
-  const bucket = storage.bucket("homophone-test");
+  const bucket = storage.bucket("plaudio-main");
   if (sourceFile.length > 0) {
     await bucket.file(sourceFile).download({ destination: sourceFile });
     console.log(`Saved source file`);

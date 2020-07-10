@@ -53,7 +53,7 @@ export const Header = ({ soundId }: { soundId: string | null }) => {
             className={classes.titleLink}
             color="inherit"
           >
-            homophone
+            plaud.io
           </Link>
         </Typography>
         {auth.loggedIn && (

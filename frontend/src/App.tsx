@@ -20,6 +20,7 @@ import {
 import { FirebaseContext } from "./components/Firebase";
 import { AuthContext } from "./components/User";
 import { Auth } from "./components/User/context";
+import { DisplayNameModal } from "./components/Auth/DisplayNameModal";
 
 interface Dictionary<T> {
   [key: string]: T;
@@ -64,6 +65,15 @@ class AudioService extends React.Component<
       this.setState({
         ...this.state,
         audioState: { ...this.state.audioState, currentTime, duration },
+      });
+    });
+
+    this.player.addEventListener("durationchange", (event) => {
+      const audioElement = event.target as HTMLAudioElement;
+      const { duration } = audioElement;
+      this.setState({
+        ...this.state,
+        audioState: { ...this.state.audioState, duration },
       });
     });
 
@@ -306,6 +316,15 @@ function App() {
     api: new RealAPI(),
   });
 
+  const displayNameModalSubmit = (name: string) => {
+    const { api, user } = auth;
+    if (user) {
+      return api.updateProfile({ name }).then(() => {
+        setAuth({ ...auth, user: { ...user, name } });
+      });
+    }
+  };
+
   useEffect(() => {
     console.log("effect used");
     const unsub = firebase?.auth.onAuthStateChanged((firebaseUser) => {
@@ -313,9 +332,26 @@ function App() {
       if (firebaseUser) {
         const api = new RealAPI(firebaseUser);
         api.me().then((user) => {
-          setAuth({ api, firebaseUser, loggedIn: true, user });
+          if (!user) {
+            // The firebase signup function hasn't triggered yet.
+            // We can optimistically set some user parameters
+            setAuth({
+              api,
+              firebaseUser,
+              loggedIn: true,
+              user: {
+                email: firebaseUser.email || "",
+                id: firebaseUser.uid,
+                admin: false,
+                name: "",
+              },
+            });
+          } else {
+            setAuth({ api, firebaseUser, loggedIn: true, user });
+          }
         });
       } else {
+        console.log("Firebase user doesn't exist yet");
         const api = new RealAPI();
         setAuth({ loggedIn: false, api });
       }
@@ -327,6 +363,7 @@ function App() {
     <AuthContext.Provider value={auth}>
       <ThemeProvider theme={theme}>
         <AudioService api={auth.api} />
+        <DisplayNameModal onSubmit={displayNameModalSubmit} />
       </ThemeProvider>
     </AuthContext.Provider>
   );

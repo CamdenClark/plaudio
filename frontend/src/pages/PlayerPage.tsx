@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import {
   Card,
   CardActions,
@@ -46,7 +46,6 @@ export function PlayerPage({
   listen,
   loadSounds,
   sound,
-  togglePlayPause,
   onVote,
 }: PlayerPageProps) {
   const classes = useStyles();
@@ -54,7 +53,7 @@ export function PlayerPage({
 
   const vote = listen?.vote ? listen.vote : 0;
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (!sound) {
       if (history.location.pathname === "/") {
         loadSounds();
@@ -65,21 +64,6 @@ export function PlayerPage({
       history.push(`/${sound.soundId}`);
     }
   }, [sound, history, loadSounds]);
-
-  React.useEffect(() => {
-    const handler = (event: KeyboardEvent) => {
-      if (
-        event.code === "Space" &&
-        !["Play", "Pause", "Next", "Previous"].includes(
-          (event.target as any)?.ariaLabel
-        )
-      ) {
-        togglePlayPause();
-      }
-    };
-    document.addEventListener("keypress", handler);
-    return () => document.removeEventListener("keypress", handler);
-  }, [togglePlayPause]);
 
   return (
     <Container className={classes.main}>
@@ -110,7 +94,9 @@ export function PlayerPage({
                     }
                   />
                 </IconButton>
-                {sound.score + (vote || 0)}
+                <Typography style={{ fontWeight: "bold" }}>
+                  {sound.score + (vote || 0)}
+                </Typography>
                 <IconButton
                   aria-label={vote === 1 ? "Remove upvote" : "Upvote"}
                   onClick={() => {

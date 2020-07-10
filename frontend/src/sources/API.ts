@@ -17,7 +17,7 @@ const sounds: Sound[] = [
   {
     soundId: "snd-biden",
     text: "Biden test 1",
-    url: "https://storage.googleapis.com/homophone-test/snd-biden8.mp3",
+    url: "https://storage.googleapis.com/plaudio-main/snd-biden8.mp3",
     score: 2,
     createdAt: 1590306971,
     userId: "userid",
@@ -26,7 +26,7 @@ const sounds: Sound[] = [
   {
     soundId: "snd-biden2",
     text: "Biden test 2",
-    url: "https://storage.cloud.google.com/homophone-test/snd-vivaldi.mp3",
+    url: "https://storage.cloud.google.com/plaudio-main/snd-vivaldi.mp3",
     score: 2,
     createdAt: 1590306941,
     userId: "userid",
@@ -90,7 +90,7 @@ export class MockAPI implements IAPI {
 
 export class RealAPI implements IAPI {
   client: AxiosInstance = axios.create({
-    baseURL: "http://api.homophone.io",
+    baseURL: "https://api-dot-plaudio.uc.r.appspot.com",
   });
 
   user?: firebase.User;

@@ -1,4 +1,4 @@
-import React, { useContext } from "react";
+import React, { useContext, useEffect, useState } from "react";
 
 import { FirebaseContext } from "../Firebase";
 import { TextField, Button, makeStyles } from "@material-ui/core";
@@ -11,15 +11,30 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 const Signin = () => {
-  const [state, setState] = React.useState({
-    email: "",
-    password: "",
-  });
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const classes = useStyles();
   const firebase = useContext(FirebaseContext);
   const history = useHistory();
+  const login = (email: string, password: string) => {
+    firebase?.doSignInWithEmailAndPassword(email, password).then((user) => {
+      if (user) {
+        history.push(`/`);
+      }
+    });
+  };
 
-  const { email, password } = state;
+  useEffect(() => {
+    const listener = (event: KeyboardEvent) => {
+      if (event.code === "Enter" || event.code === "NumpadEnter") {
+        login(email, password);
+      }
+    };
+    document.addEventListener("keydown", listener);
+    return () => {
+      document.removeEventListener("keydown", listener);
+    };
+  });
 
   return (
     <>
@@ -28,7 +43,7 @@ const Signin = () => {
         label={"Email"}
         variant={"outlined"}
         style={{ minWidth: 100 }}
-        onChange={(e) => setState({ ...state, email: e.target.value || "" })}
+        onChange={(e) => setEmail(e.target.value || "")}
       />
       <TextField
         id={"Password"}
@@ -36,18 +51,10 @@ const Signin = () => {
         variant={"outlined"}
         type={"password"}
         style={{ minWidth: 100, marginTop: 20 }}
-        onChange={(e) => setState({ ...state, password: e.target.value || "" })}
+        onChange={(e) => setPassword(e.target.value || "")}
       />
       <Button
-        onClick={() => {
-          firebase
-            ?.doSignInWithEmailAndPassword(email, password)
-            .then((user) => {
-              if (user) {
-                history.push(`/`);
-              }
-            });
-        }}
+        onClick={() => login(email, password)}
         variant={"outlined"}
         className={classes.signinButton}
       >

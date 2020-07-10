@@ -11,6 +11,7 @@ import { UserSound, Sound } from "../models/Sound";
 import { IAPI } from "../sources/API";
 import { AudioFile } from "../models/AudioFile";
 import { AuthContext } from "../components/User";
+import { useHistory } from "react-router-dom";
 
 type ComposePageProps = {
   onSubmit: (sound: UserSound) => Promise<Sound>;
@@ -23,6 +24,7 @@ export function ComposePage({ onSubmit, api }: ComposePageProps) {
   const [displayName, setDisplayName] = useState("");
   const [audioFile, setAudioFile] = useState<AudioFile | null>(null);
   const auth = useContext(AuthContext);
+  const history = useHistory();
   React.useEffect(() => {
     if (rawFile) {
       api.upload(rawFile).then((audioFile) => {
@@ -104,6 +106,7 @@ export function ComposePage({ onSubmit, api }: ComposePageProps) {
                       text,
                       sourceFile: audioFile?.name,
                     });
+                    history.push(`/`);
                   }}
                 >
                   Submit

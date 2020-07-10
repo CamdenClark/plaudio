@@ -1,7 +1,7 @@
 const Firestore = require("@google-cloud/firestore");
 
 const firestore = new Firestore({
-  projectid: "homophone",
+  projectid: "plaudio",
 });
 
 exports.registerUser = async (firebaseUser) => {

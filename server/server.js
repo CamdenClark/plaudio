@@ -19,7 +19,7 @@ const voteTopic = pubsub.topic("vote-trigger");
 admin.initializeApp();
 
 const db = new Firestore({
-  projectid: "homophone",
+  projectid: "plaudio",
 });
 
 const getAuthToken = (req, res, next) => {
@@ -65,8 +65,7 @@ const multer = Multer({
 
 const renderSound = (sound) => ({
   soundId: sound.soundId,
-  url:
-    "https://storage.googleapis.com/homophone-test/" + sound.soundId + ".mp3",
+  url: "https://storage.googleapis.com/plaudio-main/" + sound.soundId + ".mp3",
   createdAt: sound.createdAt.seconds,
   score: sound.score,
   userId: sound.userId,
@@ -182,7 +181,7 @@ app.post(
     const { file } = req;
     const fileId = "file-" + shortid.generate();
 
-    const bucket = storage.bucket("homophone-test");
+    const bucket = storage.bucket("plaudio-main");
 
     const blob = bucket.file(file.originalname);
     const blobStream = blob.createWriteStream();
@@ -207,12 +206,29 @@ app.get("/users/me", checkIfAuthenticated, async (req, res) => {
   res.send(user);
 });
 
+/* *** CONTENT WARNING *** */
+const blockedNameMatch = "(nigg|fag)";
+/* *** CONTENT WARNING *** */
+const onlyCharactersAndSpaces = "^([a-z]|\\s)*$";
+
 app.put("/users/me", checkIfAuthenticated, async (req, res) => {
   const user = await getUser(req);
   if (user.name) {
     res.sendStatus(400);
   }
   const { name } = req.body;
+  const lowerDisplayName = name.toLocaleLowerCase();
+
+  const usesBlockedNames = lowerDisplayName.match(blockedNameMatch);
+  const usesBadCharacters = !lowerDisplayName.match(onlyCharactersAndSpaces);
+  const tooShort = lowerDisplayName.length < 3;
+  const tooLong = lowerDisplayName.length > 15;
+
+  const invalidName =
+    tooLong || tooShort || usesBlockedNames || usesBadCharacters ? true : false;
+  if (invalidName) {
+    res.status(400).send({ message: "You provided an invalid name" });
+  }
   await db.doc(`users/${req.authId}`).update({ name });
   res.sendStatus(200);
 });

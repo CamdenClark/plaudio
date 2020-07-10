@@ -1,4 +1,4 @@
-import React, { useContext } from "react";
+import React, { useContext, useEffect, useState } from "react";
 
 import { FirebaseContext } from "../Firebase";
 import { TextField, Button, makeStyles } from "@material-ui/core";
@@ -15,15 +15,34 @@ const Signup = () => {
   const history = useHistory();
   const firebase = useContext(FirebaseContext);
 
-  const [state, setState] = React.useState({
-    email: "",
-    password: "",
-    confirm: "",
-  });
+  const signup = (email: string, password: string) => {
+    firebase
+      ?.doCreateUserWithEmailAndPassword(email, password)
+      .then((authUser) => {
+        setTimeout(() => history.push(`/`), 500);
+      });
+  };
 
-  const { confirm, email, password } = state;
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirm, setConfirm] = useState("");
 
   const passwordInvalid = password !== confirm;
+
+  useEffect(() => {
+    const listener = (event: KeyboardEvent) => {
+      if (
+        !passwordInvalid &&
+        (event.code === "Enter" || event.code === "NumpadEnter")
+      ) {
+        signup(email, password);
+      }
+    };
+    document.addEventListener("keydown", listener);
+    return () => {
+      document.removeEventListener("keydown", listener);
+    };
+  });
 
   return (
     <>
@@ -32,7 +51,7 @@ const Signup = () => {
         label={"Email"}
         variant={"outlined"}
         style={{ minWidth: 100 }}
-        onChange={(e) => setState({ ...state, email: e.target.value || "" })}
+        onChange={(e) => setEmail(e.target.value || "")}
       />
       <TextField
         id={"Password"}
@@ -40,7 +59,7 @@ const Signup = () => {
         type="password"
         variant={"outlined"}
         style={{ minWidth: 100, marginTop: 20 }}
-        onChange={(e) => setState({ ...state, password: e.target.value || "" })}
+        onChange={(e) => setPassword(e.target.value || "")}
       />
       <TextField
         id={"Confirm Password"}
@@ -50,18 +69,12 @@ const Signup = () => {
         style={{ minWidth: 100, marginTop: 20 }}
         error={passwordInvalid}
         helperText={passwordInvalid && "Passwords don't match"}
-        onChange={(e) => setState({ ...state, confirm: e.target.value || "" })}
+        onChange={(e) => setConfirm(e.target.value || "")}
       />
       <Button
-        onClick={() => {
-          firebase
-            ?.doCreateUserWithEmailAndPassword(email, password)
-            .then((authUser) => {
-              history.push(`/`);
-            });
-        }}
         variant={"outlined"}
         className={classes.signupButton}
+        onClick={() => signup(email, password)}
       >
         Signup
       </Button>
