@@ -1,10 +1,10 @@
-var ffmpeg = require("fluent-ffmpeg");
-const express = require("express");
-const fs = require("fs");
-const util = require("util");
-const bodyParser = require("body-parser");
-const { Storage } = require("@google-cloud/storage");
-const textToSpeech = require("@google-cloud/text-to-speech");
+import ffmpeg from "fluent-ffmpeg";
+import express from "express";
+import fs from "fs";
+import util from "util";
+import bodyParser from "body-parser";
+import { Storage } from "@google-cloud/storage";
+import textToSpeech from "@google-cloud/text-to-speech";
 
 const storage = new Storage();
 const client = new textToSpeech.TextToSpeechClient();
@@ -12,7 +12,7 @@ const client = new textToSpeech.TextToSpeechClient();
 const app = express();
 app.use(bodyParser.json());
 
-const replaceSoundEmojis = (text) =>
+const replaceSoundEmojis = (text: string) =>
   text.replace(
     "metalGearAlert",
     `<audio src="https://www.myinstants.com/media/sounds/tindeck_1.mp3">
@@ -20,14 +20,33 @@ const replaceSoundEmojis = (text) =>
         </audio>`
   );
 
-const getSSML = ({ displayName, text }) =>
+type TTSRequestInput = {
+  ssml: string;
+};
+
+type TTSRequestVoice = {
+  languageCode: string;
+  ssmlGender: "NEUTRAL";
+};
+
+type TTSRequestAudioConfig = {
+  audioEncoding: "MP3";
+};
+
+type TTSRequest = {
+  input: TTSRequestInput;
+  voice: TTSRequestVoice;
+  audioConfig: TTSRequestAudioConfig;
+};
+
+const getSSML = ({ displayName, text }: any) =>
   `<speak>User ${displayName} says, ${replaceSoundEmojis(text)}</speak>`;
 
-app.post("/", async (req, res) => {
+app.post("/", async (req: any, res: any) => {
   const { soundId, text, displayName, sourceFile } = JSON.parse(
     Buffer.from(req.body.message.data, "base64").toString()
   );
-  const request = {
+  const request: TTSRequest = {
     input: {
       ssml: getSSML({ text, displayName }),
     },
@@ -53,10 +72,10 @@ app.post("/", async (req, res) => {
           .input(`${soundId}-tts.mp3`)
           .input(sourceFile)
           .audioBitrate(256)
-          .on("progress", (progress) => {
+          .on("progress", (progress: any) => {
             console.log(`[ffmpeg] ${JSON.stringify(progress)}`);
           })
-          .on("error", (err) => {
+          .on("error", (err: any) => {
             console.log(`[ffmpeg] error: ${err.message}`);
             reject();
           })
@@ -78,10 +97,10 @@ app.post("/", async (req, res) => {
         ffmpeg()
           .input(`${soundId}-tts.mp3`)
           .audioBitrate(256)
-          .on("progress", (progress) => {
+          .on("progress", (progress: any) => {
             console.log(`[ffmpeg] ${JSON.stringify(progress)}`);
           })
-          .on("error", (err) => {
+          .on("error", (err: any) => {
             console.log(`[ffmpeg] error: ${err.message}`);
             reject();
           })

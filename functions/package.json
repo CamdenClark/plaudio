@@ -2,8 +2,9 @@
   "name": "functions",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "dist/index.js",
   "scripts": {
+    "build": "tsc",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
@@ -11,5 +12,8 @@
   "dependencies": {
     "@google-cloud/firestore": "^3.8.0",
     "firebase-admin": "^8.13.0"
+  },
+  "devDependencies": {
+    "typescript": "^3.9.6"
   }
 }

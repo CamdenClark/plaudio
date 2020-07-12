@@ -1,20 +1,31 @@
-const Firestore = require("@google-cloud/firestore");
+import { Firestore } from "@google-cloud/firestore";
 
 const firestore = new Firestore({
   projectid: "plaudio",
 });
 
-exports.registerUser = async (firebaseUser) => {
+type FirebaseUser = {
+  uid: string;
+  email: string;
+};
+
+exports.registerUser = async (firebaseUser: FirebaseUser) => {
   const userDocument = firestore.doc(`users/${firebaseUser.uid}`);
   const user = await userDocument.set({
     id: firebaseUser.uid,
     email: firebaseUser.email,
     admin: false,
   });
-  console.log(`Created user ${user.id}`);
+  if (user) {
+    console.log(`Created user ${firebaseUser.uid}`);
+  }
 };
 
-exports.computeScore = async (pubSubEvent) => {
+type ComputeScoreEvent = {
+  data: string;
+};
+
+exports.computeScore = async (pubSubEvent: ComputeScoreEvent) => {
   const { soundId, scoreDelta } = JSON.parse(
     Buffer.from(pubSubEvent.data, "base64").toString()
   );
@@ -22,7 +33,11 @@ exports.computeScore = async (pubSubEvent) => {
   console.log(`Updating sound ${soundId} with score delta ${scoreDelta}`);
   const soundDocument = firestore.doc(`sounds/${soundId}`);
   const sound = await soundDocument.get();
-  const { createdAt, score } = sound.data();
+  const data = sound.data();
+  if (!data) {
+    return;
+  }
+  const { createdAt, score } = data;
 
   const newScore = score + scoreDelta;
   console.log(
@@ -40,6 +55,4 @@ exports.computeScore = async (pubSubEvent) => {
     computedScore,
   });
   console.log(`Updated sound succesfully`);
-
-  res.sendStatus(200);
 };
