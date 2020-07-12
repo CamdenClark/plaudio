@@ -1,14 +1,13 @@
-const express = require("express");
-const bodyParser = require("body-parser");
-const cors = require("cors");
-const shortid = require("shortid");
-const Multer = require("multer");
-const admin = require("firebase-admin");
+import express from "express";
+import bodyParser from "body-parser";
+import cors from "cors";
+import shortid from "shortid";
+import Multer from "multer";
 
-const Firestore = require("@google-cloud/firestore");
-const { PubSub } = require("@google-cloud/pubsub");
-const { Storage } = require("@google-cloud/storage");
-const { auth } = require("firebase-admin");
+import { Firestore } from "@google-cloud/firestore";
+import { PubSub } from "@google-cloud/pubsub";
+import { Storage } from "@google-cloud/storage";
+import admin from "firebase-admin";
 
 const pubsub = new PubSub();
 const storage = new Storage();
@@ -22,22 +21,38 @@ const db = new Firestore({
   projectid: "plaudio",
 });
 
-const getAuthToken = (req, res, next) => {
+type User = {
+  id: string;
+  email: string;
+  admin: boolean;
+  name?: string;
+};
+
+interface Request extends express.Request {
+  authToken?: string;
+  authId: string;
+  user: User;
+}
+
+const getAuthToken = (req: Request, res: any, next: any) => {
   if (
     req.headers.authorization &&
     req.headers.authorization.split(" ")[0] === "Bearer"
   ) {
     req.authToken = req.headers.authorization.split(" ")[1];
-  } else {
-    req.authToken = null;
   }
   next();
 };
 
-const checkIfAuthenticated = (req, res, next) => {
+const checkIfAuthenticated = (req: Request, res: any, next: any) => {
   getAuthToken(req, res, async () => {
     try {
       const { authToken } = req;
+      if (!authToken) {
+        return res
+          .status(401)
+          .send({ error: "You are not authorized to make this request." });
+      }
       const userInfo = await admin.auth().verifyIdToken(authToken);
       req.authId = userInfo.uid;
       return next();
@@ -49,21 +64,21 @@ const checkIfAuthenticated = (req, res, next) => {
   });
 };
 
-const getUser = async (req) => {
+const getUser = async (req: Request) => {
   const { authId } = req;
   const userDocument = await db.doc(`users/${authId}`).get();
   return userDocument.data();
 };
 
 const app = express();
-app.use(bodyParser.json({ extended: true }));
+app.use(bodyParser.json());
 app.use(cors({ origin: true }));
 const multer = Multer({
   storage: Multer.memoryStorage(),
-  limits: 100 * 1024 * 1024,
+  limits: { fileSize: 100 * 1024 * 1024 },
 });
 
-const renderSound = (sound) => ({
+const renderSound = (sound: any) => ({
   soundId: sound.soundId,
   url: "https://storage.googleapis.com/plaudio-main/" + sound.soundId + ".mp3",
   createdAt: sound.createdAt.seconds,
@@ -73,24 +88,28 @@ const renderSound = (sound) => ({
   text: sound.text,
 });
 
-app.get("/", (req, res) => {
+app.get("/", (req: Request, res: any) => {
   res.send("Working...");
 });
 
-app.get("/sounds", async (req, res) => {
+app.get("/sounds", async (req: Request, res: any) => {
   const query = db
     .collection("sounds")
     .orderBy("computedScore", "desc")
     .limit(10);
   const sounds = await query.get();
   const { docs } = sounds;
-  res.send(docs.map((doc) => doc.data()).map(renderSound));
+  res.send(docs.map((doc: any) => doc.data()).map(renderSound));
 });
 
-app.post("/sounds", checkIfAuthenticated, async (req, res) => {
+app.post("/sounds", checkIfAuthenticated, async (req: Request, res: any) => {
   const { text, displayName, sourceFile } = req.body;
   const soundId = "snd-" + shortid.generate();
   const user = await getUser(req);
+  if (!user) {
+    res.status(400).send("Can't submit if you're not authenticated.");
+    return;
+  }
   const name = user.admin ? displayName : user.name;
   if (!name) {
     res.status(400).send("Can't submit if you don't have a name");
@@ -134,7 +153,7 @@ app.post("/sounds", checkIfAuthenticated, async (req, res) => {
   res.sendStatus(200);
 });
 
-app.get("/sounds/:soundId", async (req, res) => {
+app.get("/sounds/:soundId", async (req: Request, res: any) => {
   const { soundId } = req.params;
   console.log(`Fetching sound with id ${soundId}`);
   const document = await db.doc(`sounds/${soundId}`).get();
@@ -142,42 +161,46 @@ app.get("/sounds/:soundId", async (req, res) => {
   res.send(sound);
 });
 
-app.post("/sounds/:soundId/vote", checkIfAuthenticated, async (req, res) => {
-  const { soundId } = req.params;
-  const userId = req.authId;
-  const { vote } = req.body;
-  console.log(`Userid ${userId} votes ${vote} on ${soundId}`);
+app.post(
+  "/sounds/:soundId/vote",
+  checkIfAuthenticated,
+  async (req: Request, res: any) => {
+    const { soundId } = req.params;
+    const userId = req.authId;
+    const { vote } = req.body;
+    console.log(`Userid ${userId} votes ${vote} on ${soundId}`);
 
-  const voteDocument = db.doc(`sounds/${soundId}/votes/${userId}`);
-  const existingVote = await voteDocument.get();
-  if (existingVote.exists) {
-    await voteDocument.update({
-      vote,
-    });
-  } else {
-    await voteDocument.set({
-      vote,
-    });
+    const voteDocument = db.doc(`sounds/${soundId}/votes/${userId}`);
+    const existingVote = await voteDocument.get();
+    if (existingVote.exists) {
+      await voteDocument.update({
+        vote,
+      });
+    } else {
+      await voteDocument.set({
+        vote,
+      });
+    }
+    const scoreDelta =
+      vote - (existingVote.exists ? existingVote.get("vote") : 0);
+    if (scoreDelta !== 0) {
+      const buffer = Buffer.from(
+        JSON.stringify({
+          soundId,
+          scoreDelta,
+        })
+      );
+      voteTopic.publish(buffer);
+    }
+    res.sendStatus(200);
   }
-  const scoreDelta =
-    vote - (existingVote.exists ? existingVote.get("vote") : 0);
-  if (scoreDelta !== 0) {
-    const buffer = Buffer.from(
-      JSON.stringify({
-        soundId,
-        scoreDelta,
-      })
-    );
-    voteTopic.publish(buffer);
-  }
-  res.sendStatus(200);
-});
+);
 
 app.post(
   "/files",
   checkIfAuthenticated,
   multer.single("file"),
-  async (req, res, next) => {
+  async (req: Request, res: any, next: any) => {
     const { file } = req;
     const fileId = "file-" + shortid.generate();
 
@@ -201,7 +224,7 @@ app.post(
   }
 );
 
-app.get("/users/me", checkIfAuthenticated, async (req, res) => {
+app.get("/users/me", checkIfAuthenticated, async (req: Request, res: any) => {
   const user = await getUser(req);
   res.send(user);
 });
@@ -211,10 +234,11 @@ const blockedNameMatch = "(nigg|fag)";
 /* *** CONTENT WARNING *** */
 const onlyCharactersAndSpaces = "^([a-z]|\\s)*$";
 
-app.put("/users/me", checkIfAuthenticated, async (req, res) => {
+app.put("/users/me", checkIfAuthenticated, async (req: any, res: any) => {
   const user = await getUser(req);
-  if (user.name) {
+  if (user && user.name) {
     res.sendStatus(400);
+    return;
   }
   const { name } = req.body;
   const lowerDisplayName = name.toLocaleLowerCase();
