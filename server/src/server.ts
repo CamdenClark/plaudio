@@ -4,10 +4,11 @@ import cors from "cors";
 import shortid from "shortid";
 import Multer from "multer";
 
-import { Firestore } from "@google-cloud/firestore";
 import { PubSub } from "@google-cloud/pubsub";
 import { Storage } from "@google-cloud/storage";
 import admin from "firebase-admin";
+
+import { FirebaseStore, IStore } from "@plaudio/common";
 
 const pubsub = new PubSub();
 const storage = new Storage();
@@ -17,9 +18,7 @@ const voteTopic = pubsub.topic("vote-trigger");
 
 admin.initializeApp();
 
-const db = new Firestore({
-  projectid: "plaudio",
-});
+const store = new FirebaseStore();
 
 type User = {
   id: string;
@@ -66,8 +65,7 @@ const checkIfAuthenticated = (req: Request, res: any, next: any) => {
 
 const getUser = async (req: Request) => {
   const { authId } = req;
-  const userDocument = await db.doc(`users/${authId}`).get();
-  return userDocument.data();
+  return await store.getUser(authId);
 };
 
 const app = express();
@@ -93,13 +91,8 @@ app.get("/", (req: Request, res: any) => {
 });
 
 app.get("/sounds", async (req: Request, res: any) => {
-  const query = db
-    .collection("sounds")
-    .orderBy("computedScore", "desc")
-    .limit(10);
-  const sounds = await query.get();
-  const { docs } = sounds;
-  res.send(docs.map((doc: any) => doc.data()).map(renderSound));
+  const sounds = await store.getTopSounds();
+  res.send(sounds.map(renderSound));
 });
 
 app.post("/sounds", checkIfAuthenticated, async (req: Request, res: any) => {
@@ -118,8 +111,7 @@ app.post("/sounds", checkIfAuthenticated, async (req: Request, res: any) => {
     `Creating sound with id ${soundId}, display name ${name}, and text ${text}.`
   );
   const userId = user.id;
-  const document = db.doc(`sounds/${soundId}`);
-  await document.set({
+  await store.createSound({
     soundId,
     userId,
     displayName: name,
@@ -130,7 +122,7 @@ app.post("/sounds", checkIfAuthenticated, async (req: Request, res: any) => {
     sourceFile: sourceFile || "",
   });
 
-  await db.doc(`sounds/${soundId}/votes/${userId}`).set({ vote: 1 });
+  await store.upsertVote(soundId, userId, 1);
 
   const buffer = Buffer.from(
     JSON.stringify({
@@ -156,8 +148,8 @@ app.post("/sounds", checkIfAuthenticated, async (req: Request, res: any) => {
 app.get("/sounds/:soundId", async (req: Request, res: any) => {
   const { soundId } = req.params;
   console.log(`Fetching sound with id ${soundId}`);
-  const document = await db.doc(`sounds/${soundId}`).get();
-  const sound = renderSound(document.data());
+  const apiSound = await store.getSound(soundId);
+  const sound = renderSound(apiSound);
   res.send(sound);
 });
 
@@ -170,19 +162,9 @@ app.post(
     const { vote } = req.body;
     console.log(`Userid ${userId} votes ${vote} on ${soundId}`);
 
-    const voteDocument = db.doc(`sounds/${soundId}/votes/${userId}`);
-    const existingVote = await voteDocument.get();
-    if (existingVote.exists) {
-      await voteDocument.update({
-        vote,
-      });
-    } else {
-      await voteDocument.set({
-        vote,
-      });
-    }
-    const scoreDelta =
-      vote - (existingVote.exists ? existingVote.get("vote") : 0);
+    const oldVote = await store.upsertVote(soundId, userId, vote);
+
+    const scoreDelta = vote - oldVote;
     if (scoreDelta !== 0) {
       const buffer = Buffer.from(
         JSON.stringify({
@@ -215,8 +197,7 @@ app.post(
     blobStream.on("finish", async () => {
       const audioFile = { fileId, name: file.originalname, userId: req.authId };
 
-      const document = db.doc(`files/${fileId}`);
-      await document.set(audioFile);
+      await store.createFile(audioFile);
       res.send(audioFile);
     });
 
@@ -253,7 +234,7 @@ app.put("/users/me", checkIfAuthenticated, async (req: any, res: any) => {
   if (invalidName) {
     res.status(400).send({ message: "You provided an invalid name" });
   }
-  await db.doc(`users/${req.authId}`).update({ name });
+  await store.updateUser(req.authId, { name });
   res.sendStatus(200);
 });
 
