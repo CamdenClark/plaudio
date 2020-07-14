@@ -19,6 +19,3 @@ jobs:
       - run: cd common
       - run: npm install
       - run: npm run build --if-present
-      - run: npm test
-        env:
-          CI: true
