@@ -18,7 +18,7 @@
     "@google-cloud/pubsub": "^2.0.0",
     "@google-cloud/storage": "^5.0.0",
     "@google-cloud/text-to-speech": "^2.3.0",
-    "@plaudio/common": "^1.2.5",
+    "@plaudio/common": "^1.2.6",
     "body-parser": "^1.19.0",
     "cors": "^2.8.5",
     "express": "^4.17.1",

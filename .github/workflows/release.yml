@@ -5,7 +5,7 @@ on:
     branches:
       - master
     paths-ignore:
-      - common/package.json
+      - "common/package.json"
 
 jobs:
   server:
