@@ -17,9 +17,9 @@ jobs:
         uses: actions/setup-node@v1
         with:
           node-version: ${{ matrix.node-version }}
-      - name: Install
-        run: npm install
-        working-directory: ./common
+      - uses: bahmutov/npm-install@v1
+        with:
+          working-directory: common
       - name: Test
         run: npm test
         working-directory: ./common
@@ -47,6 +47,9 @@ jobs:
       - name: Generate .npmrc
         run: echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" > .npmrc
         working-directory: ./server
+      - uses: bahmutov/npm-install@v1
+        with:
+          working-directory: server
       - name: Install
         run: npm install
         working-directory: ./server
@@ -82,9 +85,9 @@ jobs:
       - name: Generate .npmrc
         run: echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" > .npmrc
         working-directory: ./server
-      - name: Install
-        run: npm install
-        working-directory: ./functions
+      - uses: bahmutov/npm-install@v1
+        with:
+          working-directory: functions
       - name: Test
         run: npm test
         working-directory: ./functions
