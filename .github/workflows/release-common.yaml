@@ -49,6 +49,13 @@ jobs:
       - name: Build
         run: npm run build
         working-directory: ./server
+      - uses: GoogleCloudPlatform/github-actions/setup-gcloud@master
+        with:
+          version: '290.0.1'
+          project_id: ${{ secrets.GCP_PROJECT_ID }}
+          service_account_key: ${{ secrets.GCP_SA_KEY }}
+          export_default_credentials: true
+        run: gcloud app deploy
   functions:
     env:
       NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
