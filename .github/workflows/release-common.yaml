@@ -2,9 +2,10 @@ name: Release (with common)
 
 on:
   push:
-    branches: master
+    branches:
+      - master
     paths:
-      - "common/package.json"
+      - "common/**"
 
 jobs:
   common:
