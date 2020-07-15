@@ -28,9 +28,6 @@ jobs:
       - name: Build
         run: npm run build
         working-directory: ./server
-      - name: Is the npmrc right?
-        run: cat .npmrc
-        working-directory: ./server
       - uses: GoogleCloudPlatform/github-actions/setup-gcloud@master
         with:
           version: '290.0.1'
@@ -53,9 +50,21 @@ jobs:
         uses: actions/setup-node@v1
         with:
           node-version: ${{ matrix.node-version }}
+      - name: Generate .npmrc
+        run: echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" > .npmrc
+        working-directory: ./server
       - name: Install
         run: npm install
         working-directory: ./functions
       - name: Build
         run: npm run build
         working-directory: ./functions
+      - uses: GoogleCloudPlatform/github-actions/setup-gcloud@master
+        with:
+          version: '290.0.1'
+          project_id: ${{ secrets.GCP_PROJECT_ID }}
+          service_account_key: ${{ secrets.GCP_SA_KEY }}
+          export_default_credentials: true 
+      - name: Deploy functions to gcloud
+        run: ./deploy.sh
+        working-directory: ./server
