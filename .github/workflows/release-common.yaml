@@ -5,7 +5,7 @@ on:
     branches:
       - master
     paths:
-      - "common/**"
+      - common/**
 
 jobs:
   common:
