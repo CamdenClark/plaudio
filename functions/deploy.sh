@@ -1,2 +1,0 @@
-gcloud functions deploy computeScore --trigger-topic vote-trigger --runtime nodejs10
-gcloud functions deploy registerUser --trigger-event providers/firebase.auth/eventTypes/user.create --trigger-resource plaudio --runtime nodejs10

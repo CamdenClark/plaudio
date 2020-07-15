@@ -25,6 +25,9 @@ jobs:
       - name: Install
         run: npm install
         working-directory: ./server
+      - name: Test
+        run: npm test
+        working-directory: ./server
       - name: Build
         run: npm run build
         working-directory: ./server
@@ -55,6 +58,9 @@ jobs:
         working-directory: ./server
       - name: Install
         run: npm install
+        working-directory: ./functions
+      - name: Test
+        run: npm test
         working-directory: ./functions
       - name: Build
         run: npm run build
