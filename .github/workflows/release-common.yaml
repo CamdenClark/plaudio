@@ -88,6 +88,8 @@ jobs:
           service_account_key: ${{ secrets.GCP_SA_KEY }}
           export_default_credentials: true 
       - name: Deploy functions to gcloud
-        run: ./deploy.sh
+        run: |
+            gcloud functions deploy computeScore --trigger-topic vote-trigger --runtime nodejs10
+            gcloud functions deploy registerUser --trigger-event providers/firebase.auth/eventTypes/user.create --trigger-resource plaudio --runtime nodejs10
         working-directory: ./functions
 
