@@ -26,9 +26,6 @@ jobs:
       - name: Build
         run: npm run build
         working-directory: ./common
-      - name: Publish
-        run: npm publish
-        working-directory: ./common 
       - name: Publish if version has been updated 
         uses: pascalgn/npm-publish-action@4f4bf159e299f65d21cd1cbd96fc5d53228036df
         with:
@@ -37,6 +34,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        working-directory: ./common
   server:
     env:
       NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
