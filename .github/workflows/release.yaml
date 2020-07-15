@@ -5,7 +5,7 @@ on:
     tags: v1.*
 
 jobs:
-  build:
+  common:
     env:
       NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
     runs-on: ubuntu-latest
@@ -28,3 +28,24 @@ jobs:
       - name: Publish
         run: npm publish
         working-directory: ./common
+  server:
+    env:
+      NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+    needs: common
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [10.x]
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v1
+        with:
+          node-version: ${{ matrix.node-version }}
+      - name: Install
+        run: npm install
+        working-directory: ./server
+      - name: Build
+        run: npm run build
+        working-directory: ./server
