@@ -25,6 +25,12 @@ jobs:
       - name: Build
         run: npm run build
         working-directory: ./server
+      - name: Generate env file for deployment
+        run: echo "NPM_TOKEN = $NPM_TOKEN" | .env
+        working-directory: ./server
+      - name: Is the env right?
+        run: cat .env
+        working-directory: ./server
       - uses: GoogleCloudPlatform/github-actions/setup-gcloud@master
         with:
           version: '290.0.1'
