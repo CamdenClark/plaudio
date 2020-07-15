@@ -19,17 +19,17 @@ jobs:
         uses: actions/setup-node@v1
         with:
           node-version: ${{ matrix.node-version }}
+      - name: Generate .npmrc
+        run: echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" > .npmrc
+        working-directory: ./server
       - name: Install
         run: npm install
         working-directory: ./server
       - name: Build
         run: npm run build
         working-directory: ./server
-      - name: Generate env file for deployment
-        run: echo "NPM_TOKEN= $NPM_TOKEN" > .env
-        working-directory: ./server
-      - name: Is the env right?
-        run: cat .env
+      - name: Is the npmrc right?
+        run: cat .npmrc
         working-directory: ./server
       - uses: GoogleCloudPlatform/github-actions/setup-gcloud@master
         with:
