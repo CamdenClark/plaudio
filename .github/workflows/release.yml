@@ -38,6 +38,7 @@ jobs:
   server:
     env:
       NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+    needs: common
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -72,6 +73,7 @@ jobs:
   functions:
     env:
       NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+    needs: common
     runs-on: ubuntu-latest
     strategy:
       matrix:
