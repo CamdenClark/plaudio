@@ -6,6 +6,8 @@ on:
 
 jobs:
   build:
+    env:
+      NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -23,12 +25,6 @@ jobs:
       - name: Build
         run: npm run build
         working-directory: ./common
-      - name: HMMMM
-        env:
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-        run: echo $NPM_TOKEN
       - name: Publish
-        env:
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: npm publish
         working-directory: ./common
