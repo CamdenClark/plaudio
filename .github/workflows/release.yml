@@ -67,4 +67,4 @@ jobs:
           export_default_credentials: true 
       - name: Deploy functions to gcloud
         run: ./deploy.sh
-        working-directory: ./server
+        working-directory: ./functions
