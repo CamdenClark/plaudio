@@ -1,5 +1,4 @@
-import React, { useContext, useState } from "react";
-import { AuthContext } from "../components/User";
+import React, { useContext, useState, useEffect } from "react";
 import {
   Container,
   Grid,
@@ -7,7 +6,12 @@ import {
   TextField,
   Typography,
 } from "@material-ui/core";
+
+import { AuthContext } from "../components/User";
 import { FirebaseContext } from "../components/Firebase";
+import { SoundCard } from "../components/Sound";
+
+import { Sound } from "../models/Sound";
 
 import { useHistory } from "react-router-dom";
 
@@ -16,6 +20,16 @@ export const ProfilePage = () => {
   const auth = useContext(AuthContext);
   const [name, setName] = useState("");
   const history = useHistory();
+
+  const [sounds, setSounds] = useState([] as Sound[]);
+
+  const { api } = auth;
+
+  useEffect(() => {
+    api.loadMySounds().then((snds) => {
+      setSounds(snds);
+    });
+  }, [api]);
 
   return (
     <Container>
@@ -78,6 +92,10 @@ export const ProfilePage = () => {
           >
             Sign Out
           </Button>
+
+          {sounds.map((sound) => (
+            <SoundCard sound={sound} />
+          ))}
         </Grid>
       </Grid>
     </Container>

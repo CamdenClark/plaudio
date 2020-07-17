@@ -183,6 +183,11 @@ app.get("/users/me", checkIfAuthenticated, async (req: Request, res: any) => {
   res.send(user);
 });
 
+app.get("/sounds/me", checkIfAuthenticated, async (req: Request, res: any) => {
+  const sounds = await store.getMySounds(req.authId);
+  res.send(sounds);
+});
+
 /* *** CONTENT WARNING *** */
 const blockedNameMatch = "(nigg|fag)";
 /* *** CONTENT WARNING *** */

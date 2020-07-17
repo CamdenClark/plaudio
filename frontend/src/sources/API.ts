@@ -6,6 +6,7 @@ import { User } from "../models/User";
 export interface IAPI {
   vote(soundId: string, vote: number): Promise<void>;
   submit(sound: Partial<Sound>): Promise<Sound>;
+  loadMySounds(): Promise<Sound[]>;
   loadSounds(page: number): Promise<Sound[]>;
   loadSound(soundId: string): Promise<Sound>;
   upload(file: File): Promise<RawSound>;
@@ -59,6 +60,12 @@ export class MockAPI implements IAPI {
   }
 
   loadSounds(page: number): Promise<Sound[]> {
+    return new Promise((resolve) => {
+      resolve(sounds);
+    });
+  }
+
+  loadMySounds(): Promise<Sound[]> {
     return new Promise((resolve) => {
       resolve(sounds);
     });
@@ -146,6 +153,12 @@ export class RealAPI implements IAPI {
   async loadSounds(page: number): Promise<Sound[]> {
     const config = await this.getConfig();
     const response = await this.client.get(`/sounds`, config);
+    return response.data;
+  }
+
+  async loadMySounds(): Promise<Sound[]> {
+    const config = await this.getConfig();
+    const response = await this.client.get(`/sounds/me`, config);
     return response.data;
   }
 

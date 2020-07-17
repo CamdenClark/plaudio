@@ -10,6 +10,7 @@ export interface IStore {
   createSound(sound: APISound): Promise<APISound>;
   getSound(soundId: string): Promise<APISound>;
   getTopSounds(): Promise<APISound[]>;
+  getMySounds(userId: string): Promise<APISound[]>;
 }
 
 export class FirebaseStore implements IStore {
@@ -87,6 +88,15 @@ export class FirebaseStore implements IStore {
       .collection("sounds")
       .orderBy("computedScore", "desc")
       .limit(10);
+    const sounds = await query.get();
+    return sounds.docs.map((doc) => doc.data()) as APISound[];
+  }
+
+  async getMySounds(userId: string): Promise<APISound[]> {
+    const query = this.store
+      .collection("sounds")
+      .where(`userId`, "==", userId)
+      .orderBy("createdAt", "desc");
     const sounds = await query.get();
     return sounds.docs.map((doc) => doc.data()) as APISound[];
   }
