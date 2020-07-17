@@ -4,22 +4,18 @@ import cors from "cors";
 import shortid from "shortid";
 import Multer from "multer";
 
+import { User } from "@plaudio/common";
+
 import { FirebaseAuth } from "./auth";
 import { Publish } from "./publish";
 import { FirebaseStore } from "./store";
 import { Filestorage } from "./storage";
+import { DBSoundToSound } from "./models";
 
 const filestorage = new Filestorage();
 const publish = new Publish();
 const auth = new FirebaseAuth();
 const store = new FirebaseStore();
-
-type User = {
-  id: string;
-  email: string;
-  admin: boolean;
-  name?: string;
-};
 
 interface Request extends express.Request {
   authToken?: string;
@@ -70,23 +66,13 @@ const multer = Multer({
   limits: { fileSize: 100 * 1024 * 1024 },
 });
 
-const renderSound = (sound: any) => ({
-  soundId: sound.soundId,
-  url: "https://storage.googleapis.com/plaudio-main/" + sound.soundId + ".mp3",
-  createdAt: sound.createdAt.seconds,
-  score: sound.score,
-  userId: sound.userId,
-  displayName: sound.displayName,
-  text: sound.text,
-});
-
 app.get("/", (req: Request, res: any) => {
   res.send("Working...");
 });
 
 app.get("/sounds", async (req: Request, res: any) => {
   const sounds = await store.getTopSounds();
-  res.send(sounds.map(renderSound));
+  res.send(sounds.map(DBSoundToSound));
 });
 
 app.post("/sounds", checkIfAuthenticated, async (req: Request, res: any) => {
@@ -137,9 +123,21 @@ app.get("/sounds/:soundId", async (req: Request, res: any) => {
   const { soundId } = req.params;
   console.log(`Fetching sound with id ${soundId}`);
   const apiSound = await store.getSound(soundId);
-  const sound = renderSound(apiSound);
+  const sound = DBSoundToSound(apiSound);
   res.send(sound);
 });
+
+app.get(
+  "/sounds/:soundId/vote",
+  checkIfAuthenticated,
+  async (req: Request, res: any) => {
+    const { soundId } = req.params;
+    const userId = req.authId;
+    const vote = await store.getVote(soundId, userId);
+
+    res.status(200).send(vote);
+  }
+);
 
 app.post(
   "/sounds/:soundId/vote",
@@ -183,10 +181,14 @@ app.get("/users/me", checkIfAuthenticated, async (req: Request, res: any) => {
   res.send(user);
 });
 
-app.get("/sounds/me", checkIfAuthenticated, async (req: Request, res: any) => {
-  const sounds = await store.getMySounds(req.authId);
-  res.send(sounds);
-});
+app.get(
+  "/users/me/sounds",
+  checkIfAuthenticated,
+  async (req: Request, res: any) => {
+    const sounds = await store.getMySounds(req.authId);
+    res.send(sounds.map(DBSoundToSound));
+  }
+);
 
 /* *** CONTENT WARNING *** */
 const blockedNameMatch = "(nigg|fag)";

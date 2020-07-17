@@ -1,6 +1,6 @@
 {
   "name": "@plaudio/common",
-  "version": "1.3.0",
+  "version": "1.3.2",
   "description": "Common library for plaudio",
   "files": [
     "/dist"

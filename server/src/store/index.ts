@@ -1,22 +1,36 @@
-import { AudioFile, APISound, User } from "@plaudio/common";
+import { AudioFile, User } from "@plaudio/common";
 import { Firestore } from "@google-cloud/firestore";
 
+import { DBSound } from "../models";
+
 export interface IStore {
+  getVote(soundId: string, userId: string): Promise<number>;
   upsertVote(soundId: string, userId: string, vote: number): Promise<number>;
   createUser(user: User): Promise<void>;
   getUser(userId: string): Promise<User>;
   updateUser(userId: string, updates: Partial<User>): Promise<void>;
   createFile(file: AudioFile): Promise<AudioFile>;
-  createSound(sound: APISound): Promise<APISound>;
-  getSound(soundId: string): Promise<APISound>;
-  getTopSounds(): Promise<APISound[]>;
-  getMySounds(userId: string): Promise<APISound[]>;
+  createSound(sound: DBSound): Promise<DBSound>;
+  getSound(soundId: string): Promise<DBSound>;
+  getTopSounds(): Promise<DBSound[]>;
+  getMySounds(userId: string): Promise<DBSound[]>;
 }
 
 export class FirebaseStore implements IStore {
   store: Firestore;
   constructor() {
     this.store = new Firestore({ projectid: "plaudio" });
+  }
+
+  async getVote(soundId: string, userId: string): Promise<any> {
+    const voteDocument = await this.store.doc(
+      `sounds/${soundId}/votes/${userId}`
+    );
+    const vote = await voteDocument.get();
+    if (vote.exists) {
+      return vote.data();
+    }
+    return { vote: 0 };
   }
 
   async upsertVote(
@@ -65,7 +79,7 @@ export class FirebaseStore implements IStore {
     return audioFile;
   }
 
-  async createSound(sound: APISound): Promise<APISound> {
+  async createSound(sound: DBSound): Promise<DBSound> {
     const newSound = await this.store.doc(`sounds/${sound.soundId}`).set(sound);
     if (!newSound) {
       throw new Error(`Can't create sound object ${sound}`);
@@ -73,31 +87,31 @@ export class FirebaseStore implements IStore {
     return sound;
   }
 
-  async getSound(soundId: string): Promise<APISound> {
+  async getSound(soundId: string): Promise<DBSound> {
     const soundDocument = await this.store.doc(`sounds/${soundId}`).get();
     const sound = soundDocument.data();
     if (sound) {
-      return sound as APISound;
+      return sound as DBSound;
     } else {
       throw new Error(`Sound ${soundId} doesn't exist.`);
     }
   }
 
-  async getTopSounds(): Promise<APISound[]> {
+  async getTopSounds(): Promise<DBSound[]> {
     const query = this.store
       .collection("sounds")
       .orderBy("computedScore", "desc")
       .limit(10);
     const sounds = await query.get();
-    return sounds.docs.map((doc) => doc.data()) as APISound[];
+    return sounds.docs.map((doc) => doc.data()) as DBSound[];
   }
 
-  async getMySounds(userId: string): Promise<APISound[]> {
+  async getMySounds(userId: string): Promise<DBSound[]> {
     const query = this.store
       .collection("sounds")
       .where(`userId`, "==", userId)
-      .orderBy("createdAt", "desc");
+      .limit(10);
     const sounds = await query.get();
-    return sounds.docs.map((doc) => doc.data()) as APISound[];
+    return sounds.docs.map((doc) => doc.data()) as DBSound[];
   }
 }

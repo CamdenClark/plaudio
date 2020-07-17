@@ -7,7 +7,6 @@ import { lightGreen } from "@material-ui/core/colors";
 import { AudioFooter, Header } from "./components/Layout";
 
 import { Sound, UserSound } from "./models/Sound";
-import { Listen } from "./models/Listen";
 
 import { IAPI, RealAPI } from "./sources/API";
 import {
@@ -41,7 +40,6 @@ type AudioServiceState = {
   queue: string[];
   queuePosition: number;
   sounds: Dictionary<Sound>;
-  listens: Dictionary<Listen>;
 };
 
 class AudioService extends React.Component<
@@ -55,7 +53,6 @@ class AudioService extends React.Component<
     queue: [],
     queuePosition: 0,
     sounds: {},
-    listens: {},
   };
 
   componentDidMount() {
@@ -106,11 +103,6 @@ class AudioService extends React.Component<
   getSound = () => {
     const { sounds } = this.state;
     return sounds[this.getSoundId()];
-  };
-
-  getListen = () => {
-    const { listens } = this.state;
-    return listens[this.getSoundId()];
   };
 
   onPause = () => {
@@ -176,26 +168,6 @@ class AudioService extends React.Component<
     }
   };
 
-  onVote = (vote: number): Promise<void> => {
-    const { listens } = this.state;
-    const soundId = this.getSoundId();
-    if (soundId) {
-      this.setState({
-        listens: {
-          ...listens,
-          [soundId]: {
-            ...listens[soundId],
-            vote,
-          },
-        },
-      });
-      return this.props.api.vote(soundId, vote);
-    }
-    return new Promise((resolve, _) => {
-      resolve();
-    });
-  };
-
   onSubmit = (sound: UserSound): Promise<Sound> => {
     return this.props.api.submit(sound);
   };
@@ -237,10 +209,9 @@ class AudioService extends React.Component<
   };
 
   render() {
-    const { audioState, listens, queue, queuePosition, sounds } = this.state;
+    const { audioState, queue, queuePosition, sounds } = this.state;
     const soundId = queuePosition < queue.length ? queue[queuePosition] : null;
     const sound = soundId && soundId.length > 0 ? sounds[soundId] : null;
-    const listen = soundId && soundId.length > 0 ? listens[soundId] : null;
     return (
       <Router>
         <div
@@ -266,22 +237,10 @@ class AudioService extends React.Component<
                 <ComposePage onSubmit={this.onSubmit} api={this.props.api} />
               </Route>
               <Route path={`/:soundId`}>
-                <PlayerPage
-                  listen={listen}
-                  loadSounds={this.loadSounds}
-                  onVote={this.onVote}
-                  sound={sound}
-                  togglePlayPause={this.onToggle}
-                />
+                <PlayerPage loadSounds={this.loadSounds} sound={sound} />
               </Route>
               <Route path={`/`}>
-                <PlayerPage
-                  listen={listen}
-                  loadSounds={this.loadSounds}
-                  onVote={this.onVote}
-                  sound={sound}
-                  togglePlayPause={this.onToggle}
-                />
+                <PlayerPage loadSounds={this.loadSounds} sound={sound} />
               </Route>
             </Switch>
           </div>

@@ -5,41 +5,20 @@ import { Sound } from "../models/Sound";
 import { SoundCard } from "../components/Sound";
 
 import { useHistory } from "react-router-dom";
-import { Listen } from "../models/Listen";
 
 const useStyles = makeStyles((theme) => ({
   main: {
     marginTop: theme.spacing(2),
     marginBottom: theme.spacing(2),
   },
-  vote: {
-    fontSize: "2.5rem",
-    color: "inherit",
-  },
-  upvoteActive: {
-    fontSize: "2.5rem",
-    color: theme.palette.primary.dark,
-  },
-  downvoteActive: {
-    fontSize: "2.5rem",
-    color: theme.palette.secondary.dark,
-  },
 }));
 
 type PlayerPageProps = {
-  listen: Listen | null;
   loadSounds: (options?: { soundId?: string; next?: boolean }) => void;
-  onVote: (vote: number) => Promise<void>;
   sound: Sound | null;
-  togglePlayPause: () => void;
 };
 
-export function PlayerPage({
-  listen,
-  loadSounds,
-  sound,
-  onVote,
-}: PlayerPageProps) {
+export function PlayerPage({ loadSounds, sound }: PlayerPageProps) {
   const classes = useStyles();
   const history = useHistory();
 

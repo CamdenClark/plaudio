@@ -1,15 +1,17 @@
 import axios, { AxiosInstance } from "axios";
-import { RawSound } from "../models/RawSound";
+import { AudioFile } from "../models/AudioFile";
 import { Sound, UserSound } from "../models/Sound";
 import { User } from "../models/User";
+import { Vote } from "../models/Vote";
 
 export interface IAPI {
+  getVote(soundId: string): Promise<Vote>;
   vote(soundId: string, vote: number): Promise<void>;
   submit(sound: Partial<Sound>): Promise<Sound>;
   loadMySounds(): Promise<Sound[]>;
   loadSounds(page: number): Promise<Sound[]>;
   loadSound(soundId: string): Promise<Sound>;
-  upload(file: File): Promise<RawSound>;
+  upload(file: File): Promise<AudioFile>;
   me(): Promise<User>;
   updateProfile(profile: Partial<User>): Promise<void>;
 }
@@ -36,6 +38,12 @@ const sounds: Sound[] = [
 ];
 
 export class MockAPI implements IAPI {
+  getVote(soundId: string): Promise<Vote> {
+    return new Promise((resolve) => {
+      resolve({ vote: 0 });
+    });
+  }
+
   vote(soundId: string, vote: number): Promise<void> {
     return new Promise((resolve) => {
       resolve();
@@ -71,7 +79,7 @@ export class MockAPI implements IAPI {
     });
   }
 
-  upload(file: File): Promise<RawSound> {
+  upload(file: File): Promise<AudioFile> {
     return new Promise((resolve) => {
       resolve({ fileId: "test", name: "test.mp3" });
     });
@@ -97,7 +105,8 @@ export class MockAPI implements IAPI {
 
 export class RealAPI implements IAPI {
   client: AxiosInstance = axios.create({
-    baseURL: "https://api-dot-plaudio.uc.r.appspot.com",
+    baseURL: "http://localhost:8080",
+    //baseURL: "https://api-dot-plaudio.uc.r.appspot.com",
   });
 
   user?: firebase.User;
@@ -138,6 +147,12 @@ export class RealAPI implements IAPI {
     return response.data;
   }
 
+  async getVote(soundId: string): Promise<Vote> {
+    const config = await this.getConfig();
+    const response = await this.client.get(`/sounds/${soundId}/vote`, config);
+    return response.data;
+  }
+
   async submit(sound: UserSound): Promise<Sound> {
     const config = await this.getConfig();
     const response = await this.client.post(`/sounds`, sound, config);
@@ -158,11 +173,11 @@ export class RealAPI implements IAPI {
 
   async loadMySounds(): Promise<Sound[]> {
     const config = await this.getConfig();
-    const response = await this.client.get(`/sounds/me`, config);
+    const response = await this.client.get(`/users/me/sounds`, config);
     return response.data;
   }
 
-  async upload(file: File): Promise<RawSound> {
+  async upload(file: File): Promise<AudioFile> {
     const formData = new FormData();
     formData.append("file", file);
     const config = await this.getConfig({

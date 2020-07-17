@@ -1,3 +1,3 @@
-import { APISound, AudioFile, Sound, User } from "./models";
+import { APISound, AudioFile, Sound, User, Vote } from "./models";
 
-export { APISound, AudioFile, Sound, User };
+export { APISound, AudioFile, Sound, User, Vote };

@@ -17,10 +17,6 @@ type SoundCardProps = {
 };
 
 const useStyles = makeStyles((theme) => ({
-  main: {
-    marginTop: theme.spacing(2),
-    marginBottom: theme.spacing(2),
-  },
   vote: {
     fontSize: "2.5rem",
     color: "inherit",
@@ -52,17 +48,20 @@ export function SoundCard({ sound }: SoundCardProps) {
 
   useEffect(() => {
     if (sound) {
+      api.getVote(sound.soundId).then((vote) => {
+        setVote(vote.vote);
+      });
       // setVote(1);
     }
-  }, [sound]);
+  }, [api, sound]);
 
   return (
     <Card>
       <CardContent>
-        <Typography style={{ fontSize: "0.9rem" }}>
+        <Typography style={{ fontSize: "1rem" }}>
           from user {sound.displayName}
         </Typography>
-        <Typography style={{ fontSize: "1.8rem", textOverflow: "ellipsis" }}>
+        <Typography style={{ fontSize: "1.6rem", textOverflow: "ellipsis" }}>
           {sound.text}
         </Typography>
       </CardContent>
