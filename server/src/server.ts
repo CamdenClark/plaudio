@@ -4,20 +4,14 @@ import cors from "cors";
 import shortid from "shortid";
 import Multer from "multer";
 
-import { PubSub } from "@google-cloud/pubsub";
-import { Storage } from "@google-cloud/storage";
-import admin from "firebase-admin";
+import { FirebaseAuth } from "./auth";
+import { Publish } from "./publish";
+import { FirebaseStore } from "./store";
+import { Filestorage } from "./storage";
 
-import { FirebaseStore, IStore } from "@plaudio/common";
-
-const pubsub = new PubSub();
-const storage = new Storage();
-const TOPIC_NAME = "text-to-speech";
-const topic = pubsub.topic(TOPIC_NAME);
-const voteTopic = pubsub.topic("vote-trigger");
-
-admin.initializeApp();
-
+const filestorage = new Filestorage();
+const publish = new Publish();
+const auth = new FirebaseAuth();
 const store = new FirebaseStore();
 
 type User = {
@@ -52,7 +46,7 @@ const checkIfAuthenticated = (req: Request, res: any, next: any) => {
           .status(401)
           .send({ error: "You are not authorized to make this request." });
       }
-      const userInfo = await admin.auth().verifyIdToken(authToken);
+      const userInfo = await auth.verifyIdToken(authToken);
       req.authId = userInfo.uid;
       return next();
     } catch (e) {
@@ -124,23 +118,17 @@ app.post("/sounds", checkIfAuthenticated, async (req: Request, res: any) => {
 
   await store.upsertVote(soundId, userId, 1);
 
-  const buffer = Buffer.from(
-    JSON.stringify({
-      text,
-      soundId,
-      displayName: name,
-      sourceFile: sourceFile || "",
-    })
-  );
-  topic.publish(buffer);
+  await publish.publishSound({
+    text,
+    soundId,
+    displayName: name,
+    sourceFile: sourceFile || "",
+  });
 
-  const voteBuffer = Buffer.from(
-    JSON.stringify({
-      soundId,
-      scoreDelta: 1,
-    })
-  );
-  voteTopic.publish(voteBuffer);
+  await publish.publishVote({
+    soundId,
+    scoreDelta: 1,
+  });
 
   res.sendStatus(200);
 });
@@ -166,13 +154,7 @@ app.post(
 
     const scoreDelta = vote - oldVote;
     if (scoreDelta !== 0) {
-      const buffer = Buffer.from(
-        JSON.stringify({
-          soundId,
-          scoreDelta,
-        })
-      );
-      voteTopic.publish(buffer);
+      await publish.publishVote({ soundId, scoreDelta });
     }
     res.sendStatus(200);
   }
@@ -186,22 +168,13 @@ app.post(
     const { file } = req;
     const fileId = "file-" + shortid.generate();
 
-    const bucket = storage.bucket("plaudio-main");
-
-    const blob = bucket.file(file.originalname);
-    const blobStream = blob.createWriteStream();
-
-    blobStream.on("error", (err) => {
-      next(err);
-    });
-    blobStream.on("finish", async () => {
+    const onFinish = async () => {
       const audioFile = { fileId, name: file.originalname, userId: req.authId };
-
       await store.createFile(audioFile);
       res.send(audioFile);
-    });
+    };
 
-    blobStream.end(req.file.buffer);
+    filestorage.uploadAudioFile(file, onFinish, next);
   }
 );
 

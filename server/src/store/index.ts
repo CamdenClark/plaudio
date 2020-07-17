@@ -1,4 +1,4 @@
-import { AudioFile, APISound, User } from "../models";
+import { AudioFile, APISound, User } from "@plaudio/common";
 import { Firestore } from "@google-cloud/firestore";
 
 export interface IStore {
