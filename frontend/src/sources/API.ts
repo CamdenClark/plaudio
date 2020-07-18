@@ -105,8 +105,8 @@ export class MockAPI implements IAPI {
 
 export class RealAPI implements IAPI {
   client: AxiosInstance = axios.create({
-    baseURL: "http://localhost:8080",
-    //baseURL: "https://api-dot-plaudio.uc.r.appspot.com",
+    //baseURL: "http://localhost:8080",
+    baseURL: "https://api-dot-plaudio.uc.r.appspot.com",
   });
 
   user?: firebase.User;

@@ -7,24 +7,22 @@ import {
   Typography,
 } from "@material-ui/core";
 import { Speaker } from "@material-ui/icons";
-import { UserSound, Sound } from "../models/Sound";
-import { IAPI } from "../sources/API";
+import { UserSound } from "../models/Sound";
 import { AudioFile } from "../models/AudioFile";
 import { AuthContext } from "../components/User";
 import { useHistory } from "react-router-dom";
 
-type ComposePageProps = {
-  onSubmit: (sound: UserSound) => Promise<Sound>;
-  api: IAPI;
-};
-
-export function ComposePage({ onSubmit, api }: ComposePageProps) {
+export function ComposePage() {
   const [text, setText] = useState("");
   const [rawFile, setRawFile] = useState<File | null>(null);
   const [displayName, setDisplayName] = useState("");
   const [audioFile, setAudioFile] = useState<AudioFile | null>(null);
   const auth = useContext(AuthContext);
   const history = useHistory();
+
+  const { api } = auth;
+
+  const onSubmit = (sound: UserSound) => api.submit(sound);
   React.useEffect(() => {
     if (rawFile) {
       api.upload(rawFile).then((audioFile) => {

@@ -1,4 +1,10 @@
-import React, { useContext, useEffect, useState } from "react";
+import React, {
+  useCallback,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import { BrowserRouter as Router, Switch, Route } from "react-router-dom";
 
 import { createMuiTheme, ThemeProvider } from "@material-ui/core/styles";
@@ -6,9 +12,9 @@ import { lightGreen } from "@material-ui/core/colors";
 
 import { AudioFooter, Header } from "./components/Layout";
 
-import { Sound, UserSound } from "./models/Sound";
+import { Sound } from "./models/Sound";
 
-import { IAPI, RealAPI } from "./sources/API";
+import { RealAPI } from "./sources/API";
 import {
   ComposePage,
   PlayerPage,
@@ -21,244 +27,213 @@ import { AuthContext } from "./components/User";
 import { Auth } from "./components/User/context";
 import { DisplayNameModal } from "./components/Auth/DisplayNameModal";
 
-interface Dictionary<T> {
-  [key: string]: T;
-}
-
 type AudioState = {
   playing: boolean;
   duration: number;
   currentTime: number;
 };
 
-type AudioServiceProps = {
-  api: IAPI;
-};
+const AudioServiceContext = React.createContext({});
 
-type AudioServiceState = {
-  audioState: AudioState;
-  queue: string[];
-  queuePosition: number;
-  sounds: Dictionary<Sound>;
-};
+const NewAudioService = (props: any) => {
+  const player = useRef<HTMLAudioElement | null>(null);
+  const [audioState, setAudioState] = useState({} as AudioState);
+  const [queue, setQueue] = useState([] as Sound[]);
+  const [queuePosition, setQueuePosition] = useState(0);
 
-class AudioService extends React.Component<
-  AudioServiceProps,
-  AudioServiceState
-> {
-  player: HTMLAudioElement = new Audio();
+  const auth = useContext(AuthContext);
 
-  state: AudioServiceState = {
-    audioState: { playing: false, duration: 0, currentTime: 0 },
-    queue: [],
-    queuePosition: 0,
-    sounds: {},
-  };
+  const { current } = player;
 
-  componentDidMount() {
-    this.player.addEventListener("timeupdate", (event) => {
-      const audioElement = event.target as HTMLAudioElement;
-      const { currentTime, duration } = audioElement;
-      this.setState({
-        ...this.state,
-        audioState: { ...this.state.audioState, currentTime, duration },
-      });
-    });
+  const loadSounds = useCallback(
+    (next: boolean, soundId?: string) => {
+      if (soundId) {
+        auth.api.loadSound(soundId).then((sound) => {
+          setQueue([sound, ...queue]);
+          if (next) {
+            setQueuePosition(queuePosition + 1);
+          }
+        });
+      } else {
+        auth.api.loadSounds(0).then((sounds) => {
+          setQueue([...queue, ...sounds]);
+          if (next) {
+            setQueuePosition(queuePosition + 1);
+          }
+        });
+      }
+    },
+    [auth, queue, queuePosition, setQueue, setQueuePosition]
+  );
 
-    this.player.addEventListener("durationchange", (event) => {
-      const audioElement = event.target as HTMLAudioElement;
-      const { duration } = audioElement;
-      this.setState({
-        ...this.state,
-        audioState: { ...this.state.audioState, duration },
-      });
-    });
-
-    this.player.addEventListener("ended", (event) => {
-      this.onNext();
-    });
-  }
-
-  async loadSound(soundId: string): Promise<Sound> {
-    return this.props.api.loadSound(soundId);
-  }
-
-  async loadMoreQueueItems(): Promise<Sound[]> {
-    return this.props.api.loadSounds(0);
-  }
-
-  anySound = () => {
-    const { queue, queuePosition } = this.state;
-    if (queuePosition < 0 || queuePosition >= queue.length) {
-      return false;
-    }
-    return true;
-  };
-
-  getSoundId = () => {
-    const { queue, queuePosition } = this.state;
-    return queue[queuePosition];
-  };
-
-  getSound = () => {
-    const { sounds } = this.state;
-    return sounds[this.getSoundId()];
-  };
-
-  onPause = () => {
-    this.player.pause();
-    this.setState({
-      ...this.state,
-      audioState: { ...this.state.audioState, playing: false },
-    });
-  };
-
-  onPlay = () => {
-    this.player.play();
-    this.setState({
-      ...this.state,
-      audioState: { ...this.state.audioState, playing: true },
-    });
-  };
-
-  onToggle = () => {
-    if (this.state.audioState.playing) {
-      this.onPause();
+  const onNext = useCallback(() => {
+    if (queuePosition < queue.length - 1) {
+      setQueuePosition(queuePosition + 1);
     } else {
-      this.onPlay();
+      loadSounds(true);
+    }
+  }, [loadSounds, queue, queuePosition]);
+
+  const anySound = queuePosition >= 0 && queuePosition < queue.length;
+  const sound = anySound ? queue[queuePosition] : null;
+
+  useEffect(() => {
+    if (current) {
+      const endedListener = (_: any) => {
+        onNext();
+      };
+      current.addEventListener("ended", endedListener);
+
+      return () => {
+        current.removeEventListener("ended", endedListener);
+      };
+    }
+  }, [current, onNext]);
+
+  useEffect(() => {
+    if (current) {
+      const timeUpdate = (event: any) => {
+        const audioElement = event.target as HTMLAudioElement;
+        const { currentTime, duration } = audioElement;
+        setAudioState({ ...audioState, currentTime, duration });
+      };
+
+      const durationChange = (event: any) => {
+        const audioElement = event.target as HTMLAudioElement;
+        const { currentTime, duration } = audioElement;
+        setAudioState({ ...audioState, currentTime, duration });
+      };
+
+      current.addEventListener("timeupdate", timeUpdate);
+      current.addEventListener("durationchange", durationChange);
+
+      return () => {
+        current.removeEventListener("timeupdate", timeUpdate);
+        current.removeEventListener("durationchange", durationChange);
+      };
+    }
+  }, [audioState, current, setAudioState]);
+
+  const onPause = useCallback(() => {
+    if (current) {
+      current.pause();
+      setAudioState({ ...audioState, playing: false });
+    }
+  }, [audioState, current, setAudioState]);
+
+  const onPlay = useCallback(() => {
+    if (current) {
+      current.play();
+      setAudioState({ ...audioState, playing: true });
+    }
+  }, [audioState, current, setAudioState]);
+
+  const onPrevious = () => {
+    if (queuePosition > 0) {
+      setQueuePosition(queuePosition - 1);
     }
   };
 
-  onResync = () => {
-    const { audioState } = this.state;
-    if (this.anySound()) {
-      this.player.src = this.getSound().url;
+  useEffect(() => {
+    if (current && sound && current.src !== sound.url) {
+      current.src = sound.url;
       if (audioState.playing) {
-        this.player.play();
+        current.play();
       }
     }
+  }, [audioState, current, onPause, onPlay, sound]);
+
+  const context = {
+    audioState,
+    loadSounds,
+    onPlay,
+    onPause,
+    onNext,
+    onPrevious,
+    queue,
+    queuePosition,
+    sound,
   };
 
-  onNext = async () => {
-    const { queue, queuePosition } = this.state;
-    if (queuePosition >= queue.length - 1) {
-      this.loadSounds({ next: true });
-    } else {
-      this.setState(
-        {
-          ...this.state,
-          queuePosition: queuePosition + 1,
-        },
-        this.onResync
-      );
-    }
-  };
+  return (
+    <AudioServiceContext.Provider value={context}>
+      <audio ref={player} />
+      {props.children}
+    </AudioServiceContext.Provider>
+  );
+};
 
-  onPrevious = () => {
-    const { queuePosition } = this.state;
-    if (queuePosition > 0) {
-      this.player.pause();
-      this.setState(
-        {
-          ...this.state,
-          queuePosition: queuePosition - 1,
-        },
-        this.onResync
-      );
-    }
-  };
-
-  onSubmit = (sound: UserSound): Promise<Sound> => {
-    return this.props.api.submit(sound);
-  };
-
-  loadSounds = (options?: { soundId?: string; next?: boolean }) => {
-    if (options?.soundId) {
-      this.loadSound(options.soundId).then((sound) => {
-        const { sounds, queue } = this.state;
-        this.setState(
-          {
-            ...this.state,
-            queue: [sound.soundId, ...queue],
-            sounds: { ...sounds, [sound.soundId]: sound },
-          },
-          () => {
-            this.onResync();
-          }
-        );
-      });
-    } else {
-      this.loadMoreQueueItems().then((newSounds) => {
-        const { sounds, queue, queuePosition } = this.state;
-        this.setState(
-          {
-            ...this.state,
-            queue: [...queue, ...newSounds.map((snd) => snd.soundId)],
-            sounds: Object.assign(
-              sounds,
-              ...newSounds.map((snd) => ({ [snd.soundId]: snd }))
-            ),
-            queuePosition: options?.next ? queuePosition + 1 : queuePosition,
-          },
-          () => {
-            this.onResync();
-          }
-        );
-      });
-    }
-  };
-
-  render() {
-    const { audioState, queue, queuePosition, sounds } = this.state;
-    const soundId = queuePosition < queue.length ? queue[queuePosition] : null;
-    const sound = soundId && soundId.length > 0 ? sounds[soundId] : null;
-    return (
-      <Router>
-        <div
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            minHeight: "100vh",
-          }}
-        >
-          <Header soundId={soundId} />
-          <div style={{ flex: "1 0 auto" }}>
-            <Switch>
-              <Route path={`/profile`}>
-                <ProfilePage />
-              </Route>
-              <Route path={`/signup`}>
-                <SignupPage />
-              </Route>
-              <Route path={`/signin`}>
-                <SigninPage />
-              </Route>
-              <Route path={`/compose`}>
-                <ComposePage onSubmit={this.onSubmit} api={this.props.api} />
-              </Route>
-              <Route path={`/:soundId`}>
-                <PlayerPage loadSounds={this.loadSounds} sound={sound} />
-              </Route>
-              <Route path={`/`}>
-                <PlayerPage loadSounds={this.loadSounds} sound={sound} />
-              </Route>
-            </Switch>
+const AudioService = () => {
+  return (
+    <AudioServiceContext.Consumer>
+      {({
+        audioState,
+        loadSounds,
+        onPause,
+        onPlay,
+        onNext,
+        onPrevious,
+        sound,
+        queue,
+        queuePosition,
+      }: any) => (
+        <Router>
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              marginBottom: 100,
+            }}
+          >
+            <Header soundId={sound?.soundId} />
+            <div style={{ flex: "1 0 auto" }}>
+              <Switch>
+                <Route path={`/profile`}>
+                  <ProfilePage />
+                </Route>
+                <Route path={`/signup`}>
+                  <SignupPage />
+                </Route>
+                <Route path={`/signin`}>
+                  <SigninPage />
+                </Route>
+                <Route path={`/compose`}>
+                  <ComposePage />
+                </Route>
+                <Route path={`/:soundId`}>
+                  <PlayerPage
+                    loadSounds={loadSounds}
+                    sound={sound}
+                    queue={queue}
+                    queuePosition={queuePosition}
+                  />
+                </Route>
+                <Route path={`/`}>
+                  <PlayerPage
+                    loadSounds={loadSounds}
+                    sound={sound}
+                    queue={queue}
+                    queuePosition={queuePosition}
+                  />
+                </Route>
+              </Switch>
+            </div>
+            {sound && (
+              <AudioFooter
+                audioState={audioState}
+                sound={sound}
+                onPause={onPause}
+                onPrevious={onPrevious}
+                onPlay={onPlay}
+                onNext={onNext}
+              />
+            )}
           </div>
-          {sound && (
-            <AudioFooter
-              audioState={audioState}
-              sound={sound}
-              onPause={this.onPause}
-              onPrevious={this.onPrevious}
-              onPlay={this.onPlay}
-              onNext={this.onNext}
-            />
-          )}
-        </div>
-      </Router>
-    );
-  }
-}
+        </Router>
+      )}
+    </AudioServiceContext.Consumer>
+  );
+};
 
 const theme = createMuiTheme({
   palette: {
@@ -321,8 +296,10 @@ function App() {
   return (
     <AuthContext.Provider value={auth}>
       <ThemeProvider theme={theme}>
-        <AudioService api={auth.api} />
-        <DisplayNameModal onSubmit={displayNameModalSubmit} />
+        <NewAudioService>
+          <AudioService />
+          <DisplayNameModal onSubmit={displayNameModalSubmit} />
+        </NewAudioService>
       </ThemeProvider>
     </AuthContext.Provider>
   );

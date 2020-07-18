@@ -38,8 +38,7 @@ export const ProfilePage = () => {
           container
           item
           xs={12}
-          sm={6}
-          md={4}
+          sm={8}
           direction="column"
           justify="center"
           style={{ marginTop: 40 }}

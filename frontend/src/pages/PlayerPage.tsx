@@ -16,9 +16,16 @@ const useStyles = makeStyles((theme) => ({
 type PlayerPageProps = {
   loadSounds: (options?: { soundId?: string; next?: boolean }) => void;
   sound: Sound | null;
+  queue: Sound[];
+  queuePosition: number;
 };
 
-export function PlayerPage({ loadSounds, sound }: PlayerPageProps) {
+export function PlayerPage({
+  loadSounds,
+  sound,
+  queue,
+  queuePosition,
+}: PlayerPageProps) {
   const classes = useStyles();
   const history = useHistory();
 
@@ -37,8 +44,8 @@ export function PlayerPage({ loadSounds, sound }: PlayerPageProps) {
   return (
     <Container className={classes.main}>
       <Grid container direction="row" justify="center" alignItems="center">
-        <Grid item xs={12} sm={9} md={6}>
-          {sound && <SoundCard sound={sound} />}
+        <Grid item xs={12} sm={9}>
+          {queue.map((sound) => sound && <SoundCard sound={sound} />)}
         </Grid>
       </Grid>
     </Container>
