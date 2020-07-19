@@ -6,6 +6,9 @@ handlers:
   - url: /snd-(.*)$
     static_files: build/index.html
     upload: build/index.html
+  - url: /(signin|signup|profile|compose|about)
+    static_files: build/index.html
+    upload: build/index.html
   - url: /(.*)$
     static_files: build/\1
     upload: build/(.*)
