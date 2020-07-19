@@ -161,6 +161,18 @@ app.post(
 );
 
 app.post(
+  "/sounds/:soundId/report",
+  checkIfAuthenticated,
+  async (req: Request, res: any) => {
+    const { soundId } = req.params;
+    const userId = req.authId;
+    console.log(`REPORT: Userid ${userId} reported ${soundId}`);
+
+    res.sendStatus(200);
+  }
+);
+
+app.post(
   "/files",
   checkIfAuthenticated,
   multer.single("file"),
