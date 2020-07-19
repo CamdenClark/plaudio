@@ -14,8 +14,12 @@ export interface IAPI {
   loadSound(soundId: string): Promise<Sound>;
   upload(file: File): Promise<AudioFile>;
   me(): Promise<User>;
-  updateProfile(profile: Partial<User>): Promise<void>;
   report(soundId: string): Promise<void>;
+  signup(user: {
+    email: string;
+    password: string;
+    name: string;
+  }): Promise<User>;
 }
 
 const sounds: Sound[] = [
@@ -108,17 +112,26 @@ export class MockAPI implements IAPI {
     });
   }
 
-  updateProfile(profile: Partial<User>): Promise<void> {
+  signup(user: {
+    email: string;
+    password: string;
+    name: string;
+  }): Promise<User> {
     return new Promise((resolve) => {
-      resolve();
+      resolve({
+        id: "userid",
+        email: "test@test.com",
+        admin: false,
+        name: "test",
+      });
     });
   }
 }
 
 export class RealAPI implements IAPI {
   client: AxiosInstance = axios.create({
-    //baseURL: "http://localhost:8080",
-    baseURL: "https://api-dot-plaudio.uc.r.appspot.com",
+    baseURL: "http://localhost:8080",
+    //baseURL: "https://api-dot-plaudio.uc.r.appspot.com",
   });
 
   user?: firebase.User;
@@ -215,9 +228,13 @@ export class RealAPI implements IAPI {
     return response.data;
   }
 
-  async updateProfile(profile: Partial<User>): Promise<void> {
+  async signup(user: {
+    email: string;
+    password: string;
+    name: string;
+  }): Promise<User> {
     const config = await this.getConfig();
-    const response = await this.client.put(`/users/me`, profile, config);
+    const response = await this.client.post(`/users`, user, config);
     return response.data;
   }
 }

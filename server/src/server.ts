@@ -228,13 +228,8 @@ const blockedNameMatch = "(nigg|fag)";
 /* *** CONTENT WARNING *** */
 const onlyCharactersAndSpaces = "^([a-z]|\\s)*$";
 
-app.put("/users/me", checkIfAuthenticated, async (req: any, res: any) => {
-  const user = await getUser(req);
-  if (user && user.name) {
-    res.sendStatus(400);
-    return;
-  }
-  const { name } = req.body;
+app.post("/users", async (req: any, res: any) => {
+  const { name, email, password } = req.body;
   const lowerDisplayName = name.toLocaleLowerCase();
 
   const usesBlockedNames = lowerDisplayName.match(blockedNameMatch);
@@ -245,10 +240,27 @@ app.put("/users/me", checkIfAuthenticated, async (req: any, res: any) => {
   const invalidName =
     tooLong || tooShort || usesBlockedNames || usesBadCharacters ? true : false;
   if (invalidName) {
+    console.log(`Name ${name} was invalid.`);
     res.status(400).send({ message: "You provided an invalid name" });
+    return;
   }
-  await store.updateUser(req.authId, { name });
-  res.sendStatus(200);
+  const existingUserWithName = await store.getUserByDisplayName(name);
+  if (existingUserWithName) {
+    res.status(400).send({ message: "A user with that name already exists." });
+    return;
+  }
+  auth
+    .signup(email, password)
+    .then((firebaseUser) => {
+      const user = { admin: false, email, name, id: firebaseUser.uid };
+      store.createUser(user).then((_) => {
+        res.status(200).send(user);
+      });
+    })
+    .catch((err) => {
+      console.log(err.message);
+      res.status(400).send();
+    });
 });
 
 const PORT = process.env.PORT || 8080;

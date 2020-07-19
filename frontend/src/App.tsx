@@ -17,7 +17,6 @@ import {
 import { FirebaseContext } from "./components/Firebase";
 import { AuthContext } from "./components/User";
 import { Auth } from "./components/User/context";
-import { DisplayNameModal } from "./components/Auth/DisplayNameModal";
 import { AudioService, AudioServiceContext } from "./components/Audio";
 
 const Main = () => {
@@ -76,15 +75,6 @@ function App() {
     api: new RealAPI(),
   });
 
-  const displayNameModalSubmit = (name: string) => {
-    const { api, user } = auth;
-    if (user) {
-      return api.updateProfile({ name }).then(() => {
-        setAuth({ ...auth, user: { ...user, name } });
-      });
-    }
-  };
-
   useEffect(() => {
     console.log("effect used");
     const unsub = firebase?.auth.onAuthStateChanged((firebaseUser) => {
@@ -92,23 +82,7 @@ function App() {
       if (firebaseUser) {
         const api = new RealAPI(firebaseUser);
         api.me().then((user) => {
-          if (!user) {
-            // The firebase signup function hasn't triggered yet.
-            // We can optimistically set some user parameters
-            setAuth({
-              api,
-              firebaseUser,
-              loggedIn: true,
-              user: {
-                email: firebaseUser.email || "",
-                id: firebaseUser.uid,
-                admin: false,
-                name: "",
-              },
-            });
-          } else {
-            setAuth({ api, firebaseUser, loggedIn: true, user });
-          }
+          setAuth({ api, firebaseUser, loggedIn: true, user });
         });
       } else {
         console.log("Firebase user doesn't exist yet");
@@ -124,7 +98,6 @@ function App() {
       <ThemeProvider theme={theme}>
         <AudioService>
           <Main />
-          <DisplayNameModal onSubmit={displayNameModalSubmit} />
         </AudioService>
       </ThemeProvider>
     </AuthContext.Provider>

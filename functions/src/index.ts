@@ -4,23 +4,6 @@ const firestore = new Firestore({
   projectid: "plaudio",
 });
 
-type FirebaseUser = {
-  uid: string;
-  email: string;
-};
-
-exports.registerUser = async (firebaseUser: FirebaseUser) => {
-  const userDocument = firestore.doc(`users/${firebaseUser.uid}`);
-  const user = await userDocument.set({
-    id: firebaseUser.uid,
-    email: firebaseUser.email,
-    admin: false,
-  });
-  if (user) {
-    console.log(`Created user ${firebaseUser.uid}`);
-  }
-};
-
 type ComputeScoreEvent = {
   data: string;
 };

@@ -8,6 +8,7 @@ export interface IStore {
   upsertVote(soundId: string, userId: string, vote: number): Promise<number>;
   createUser(user: User): Promise<void>;
   getUser(userId: string): Promise<User>;
+  getUserByDisplayName(displayName: string): Promise<User | null>;
   updateUser(userId: string, updates: Partial<User>): Promise<void>;
   createFile(file: AudioFile): Promise<AudioFile>;
   createSound(sound: DBSound): Promise<DBSound>;
@@ -63,6 +64,17 @@ export class FirebaseStore implements IStore {
     } else {
       throw new Error(`User ${userId} doesn't exist.`);
     }
+  }
+
+  async getUserByDisplayName(displayName: string): Promise<User | null> {
+    const query = await this.store
+      .collection(`users`)
+      .where("name", "==", displayName);
+    const results = await query.get();
+    if (results.docs.length < 1) {
+      return null;
+    }
+    return results.docs[0].data() as User;
   }
 
   async updateUser(userId: string, updates: Partial<User>): Promise<void> {

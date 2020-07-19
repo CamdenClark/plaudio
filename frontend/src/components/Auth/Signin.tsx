@@ -55,7 +55,8 @@ const Signin = () => {
       />
       <Button
         onClick={() => login(email, password)}
-        variant={"outlined"}
+        color="primary"
+        variant="contained"
         className={classes.signinButton}
       >
         Sign In
