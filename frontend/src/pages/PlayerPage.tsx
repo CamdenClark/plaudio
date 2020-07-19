@@ -36,7 +36,7 @@ export function PlayerPage() {
   return (
     <Container className={classes.main}>
       <Grid container direction="row" justify="center" alignItems="center">
-        <Grid item xs={12} sm={9}>
+        <Grid item xs={12} sm={11}>
           {queue.map(
             (sound: any, i: number) =>
               sound && <SoundCard sound={sound} active={i === queuePosition} />

@@ -27,7 +27,7 @@ const Main = () => {
         style={{
           display: "flex",
           flexDirection: "column",
-          marginBottom: 100,
+          marginBottom: 150,
         }}
       >
         <AudioServiceContext.Consumer>

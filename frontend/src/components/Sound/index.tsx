@@ -20,15 +20,15 @@ type SoundCardProps = {
 
 const useStyles = makeStyles((theme) => ({
   vote: {
-    fontSize: "1.5rem",
+    fontSize: "1.3rem",
     color: "inherit",
   },
   upvoteActive: {
-    fontSize: "1.5rem",
+    fontSize: "1.3rem",
     color: theme.palette.primary.dark,
   },
   downvoteActive: {
-    fontSize: "1.5rem",
+    fontSize: "1.3rem",
     color: theme.palette.secondary.dark,
   },
   container: (props: SoundCardProps) => ({
@@ -50,14 +50,15 @@ const useStyles = makeStyles((theme) => ({
 export function SoundCard({ active, sound }: SoundCardProps) {
   const classes = useStyles({ active, sound });
   const [vote, setVote] = useState(0);
+  const [originalVote, setOriginalVote] = useState(0);
 
   const auth = useContext(AuthContext);
   const { api } = auth;
 
-  const onVote = (vote: number) => {
+  const onVote = (newVote: number) => {
     if (sound) {
-      api.vote(sound.soundId, vote).then((_) => {
-        setVote(vote);
+      api.vote(sound.soundId, newVote).then((_) => {
+        setVote(newVote);
       });
     }
   };
@@ -65,6 +66,7 @@ export function SoundCard({ active, sound }: SoundCardProps) {
   useEffect(() => {
     if (sound) {
       api.getVote(sound.soundId).then((vote) => {
+        setOriginalVote(vote.vote);
         setVote(vote.vote);
       });
     }
@@ -75,53 +77,47 @@ export function SoundCard({ active, sound }: SoundCardProps) {
       container
       direction="row"
       justify="flex-start"
-      alignItems="center"
+      alignItems="flex-start"
       className={classes.container}
     >
-      <Grid
-        container
-        item
-        xs={12}
-        sm={3}
-        alignItems="center"
-        justify="center"
-        direction="row"
-      >
-        {active || sound.status !== SoundStatus.Active ? (
-          <Grid container item xs={1} sm={3}>
-            {sound.status === SoundStatus.Error && <Error />}
-            {sound.status === SoundStatus.Processing && <HourglassEmpty />}
-            {active && <VolumeUp />}
-          </Grid>
-        ) : (
-          <Hidden xsDown>
-            <Grid item sm={3}></Grid>
-          </Hidden>
-        )}
-        <Grid item xs={11} sm={9}>
-          <Typography style={{ fontSize: "0.8rem" }}>
-            {sound.displayName}
-          </Typography>
+      {active || sound.status !== SoundStatus.Active ? (
+        <Grid container item xs={2} sm={1}>
+          {sound.status === SoundStatus.Error && <Error />}
+          {sound.status === SoundStatus.Processing && <HourglassEmpty />}
+          {active && <VolumeUp />}
         </Grid>
+      ) : (
+        <Hidden xsDown>
+          <Grid item sm={1}></Grid>
+        </Hidden>
+      )}
+      <Grid item xs={10} sm={3}>
+        <Typography style={{ fontSize: "0.8rem" }}>
+          {sound.displayName}
+        </Typography>
       </Grid>
-      <Grid item xs={12} sm={6} zeroMinWidth>
+      <Grid item xs={12} sm={8} zeroMinWidth>
         <Typography
           noWrap={!active}
-          style={{ fontSize: "1.1rem", textOverflow: "ellipsis" }}
+          style={{
+            fontSize: "1.1rem",
+            textOverflow: "ellipsis",
+          }}
         >
           {sound.text}
         </Typography>
       </Grid>
+      <Grid item sm={1} />
       <Grid
         container
         item
         direction="row"
         alignItems="center"
         xs={12}
-        sm={3}
-        justify="flex-end"
+        justify="flex-start"
       >
-        <Grid item>
+        <Grid sm={1} />
+        <Grid container item alignItems="center" xs={6} sm={3}>
           <IconButton
             aria-label={vote === -1 ? "Remove downvote" : "Downvote"}
             onClick={() => {
@@ -132,13 +128,9 @@ export function SoundCard({ active, sound }: SoundCardProps) {
               className={vote === -1 ? classes.downvoteActive : classes.vote}
             />
           </IconButton>
-        </Grid>
-        <Grid item>
           <Typography style={{ fontWeight: "bold" }}>
-            {sound.score + (vote || 0)}
+            {sound.score - (originalVote - vote)}
           </Typography>
-        </Grid>
-        <Grid item>
           <IconButton
             aria-label={vote === 1 ? "Remove upvote" : "Upvote"}
             onClick={() => {
@@ -149,6 +141,15 @@ export function SoundCard({ active, sound }: SoundCardProps) {
               className={vote === 1 ? classes.upvoteActive : classes.vote}
             />
           </IconButton>
+        </Grid>
+        <Grid item xs={6} sm={1}>
+          <Typography>
+            {`${Math.floor(sound.duration / 60)}:${Math.floor(
+              sound.duration % 60
+            )
+              .toString()
+              .padStart(2, "0")}`}
+          </Typography>
         </Grid>
       </Grid>
     </Grid>

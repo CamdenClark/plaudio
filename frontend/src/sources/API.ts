@@ -27,6 +27,7 @@ const sounds: Sound[] = [
     userId: "userid",
     displayName: "Bruh",
     status: SoundStatus.Processing,
+    duration: 0,
   },
   {
     soundId: "snd-biden2",
@@ -37,6 +38,7 @@ const sounds: Sound[] = [
     userId: "userid",
     displayName: "Bruh",
     status: SoundStatus.Processing,
+    duration: 0,
   },
 ];
 
