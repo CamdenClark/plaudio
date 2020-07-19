@@ -18,7 +18,6 @@ import { useHistory } from "react-router-dom";
 export const ProfilePage = () => {
   const firebase = useContext(FirebaseContext);
   const auth = useContext(AuthContext);
-  const [name, setName] = useState("");
   const history = useHistory();
 
   const [sounds, setSounds] = useState([] as Sound[]);
@@ -38,63 +37,37 @@ export const ProfilePage = () => {
           container
           item
           xs={12}
-          sm={8}
-          direction="column"
-          justify="center"
+          sm={11}
+          direction="row"
+          justify="space-between"
+          alignContent="flex-end"
           style={{ marginTop: 40 }}
         >
-          {auth.user && !auth.user.name && (
-            <Grid
-              container
-              item
-              direction="row"
-              justify="space-between"
-              alignItems={"center"}
-              style={{ marginBottom: 50 }}
+          <Grid item xs={8}>
+            {auth.user && auth.user.name && (
+              <Typography variant="h4">{auth.user.name}</Typography>
+            )}
+            {auth.user && auth.user.email && (
+              <Typography>Email: {auth.user.email}</Typography>
+            )}
+          </Grid>
+          <Grid container item xs={4} justify="flex-end" alignItems="center">
+            <Button
+              onClick={() => {
+                firebase?.doSignOut();
+                history.push(`/`);
+              }}
+              variant={"outlined"}
+              color={"secondary"}
             >
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  id={"Name"}
-                  label={"Name"}
-                  variant={"outlined"}
-                  style={{ minWidth: 100 }}
-                  onChange={(e) => setName(e.target.value || "")}
-                />
-              </Grid>
-              <Grid item xs={12} sm={5}>
-                <Button
-                  variant={"outlined"}
-                  onClick={() => {
-                    auth.api.updateProfile({ name }).then(() => {
-                      history.push(`/`);
-                    });
-                  }}
-                >
-                  Set Display Name
-                </Button>
-              </Grid>
-            </Grid>
-          )}
-          {auth.user && auth.user.name && (
-            <Typography>Display name: {auth.user.name}</Typography>
-          )}
-          {auth.user && auth.user.email && (
-            <Typography>Email: {auth.user.email}</Typography>
-          )}
-          <Button
-            onClick={() => {
-              firebase?.doSignOut();
-              history.push(`/`);
-            }}
-            variant={"outlined"}
-            color={"secondary"}
-          >
-            Sign Out
-          </Button>
-
-          {sounds.map((sound) => (
-            <SoundCard sound={sound} />
-          ))}
+              Sign Out
+            </Button>
+          </Grid>
+          <Grid item xs={12} style={{ marginTop: "1rem" }}>
+            {sounds.map((sound) => (
+              <SoundCard sound={sound} />
+            ))}
+          </Grid>
         </Grid>
       </Grid>
     </Container>
