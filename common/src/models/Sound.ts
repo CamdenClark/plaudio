@@ -19,4 +19,5 @@ export interface Sound {
   userId: string;
   displayName: string;
   status: SoundStatus;
+  duration: number;
 }

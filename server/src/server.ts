@@ -97,6 +97,7 @@ app.post("/sounds", checkIfAuthenticated, async (req: Request, res: any) => {
     displayName: name,
     text,
     createdAt: new Date(Date.now()),
+    duration: 0,
     score: 0,
     computedScore: 0,
     sourceFile: sourceFile || "",

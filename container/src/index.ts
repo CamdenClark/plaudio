@@ -130,9 +130,16 @@ app.post("/", async (req: any, res: any) => {
       reject();
     }
   });
+  const duration = await new Promise((resolve, reject) => {
+    ffmpeg.ffprobe(`${soundId}.mp3`, (error, metadata) => {
+      console.log(`format: ${metadata.format}`);
+      resolve(metadata.format.duration);
+    });
+  });
+
   await firestore
     .doc(`sounds/${soundId}`)
-    .update({ status: SoundStatus.Active });
+    .update({ status: SoundStatus.Active, duration });
   await bucket.upload(`${soundId}.mp3`);
   res.status(204).send();
 });

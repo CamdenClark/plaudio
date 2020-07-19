@@ -8,6 +8,7 @@ export interface DBSound {
   soundId: string;
   text: string;
   score: number;
+  duration: number;
   createdAt: FirebaseDate | Date;
   userId: string;
   displayName: string;
@@ -23,6 +24,7 @@ export const DBSoundToSound = (sound: DBSound): Sound => ({
     sound.createdAt instanceof Date
       ? sound.createdAt.getUTCSeconds()
       : sound.createdAt.seconds,
+  duration: sound.duration,
   score: sound.score,
   userId: sound.userId,
   displayName: sound.displayName,

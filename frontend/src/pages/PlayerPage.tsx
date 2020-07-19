@@ -3,7 +3,6 @@ import { Container, Grid } from "@material-ui/core";
 import { makeStyles } from "@material-ui/core/styles";
 
 import { AudioServiceContext } from "../components/Audio";
-import { Sound } from "../models/Sound";
 import { SoundCard } from "../components/Sound";
 
 import { useHistory } from "react-router-dom";
@@ -14,13 +13,6 @@ const useStyles = makeStyles((theme) => ({
     marginBottom: theme.spacing(2),
   },
 }));
-
-type PlayerPageProps = {
-  loadSounds: (next: boolean, soundId?: string) => void;
-  sound: Sound | null;
-  queue: Sound[];
-  queuePosition: number;
-};
 
 export function PlayerPage() {
   const classes = useStyles();
