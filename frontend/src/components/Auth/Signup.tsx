@@ -1,14 +1,7 @@
 import React, { useContext, useEffect, useState } from "react";
 
-import { FirebaseContext } from "../Firebase";
 import { AuthContext } from "../User";
-import {
-  TextField,
-  Button,
-  Grid,
-  Typography,
-  makeStyles,
-} from "@material-ui/core";
+import { TextField, Button, Typography, makeStyles } from "@material-ui/core";
 import { useHistory } from "react-router-dom";
 
 const useStyles = makeStyles((theme) => ({
