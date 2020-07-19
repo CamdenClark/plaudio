@@ -87,6 +87,18 @@ app.post("/sounds", checkIfAuthenticated, async (req: Request, res: any) => {
   if (!name) {
     res.status(400).send("Can't submit if you don't have a name");
   }
+
+  if (!text || text.length < 1) {
+    console.log(`You need text to submit a sound.`);
+    res.status(400).send("You need to submit text along with a sound.");
+  }
+
+  if (text.length > 500) {
+    console.log(`Text content too long, must be below 500 characters.`);
+    res
+      .status(400)
+      .send("Text content too long, must be below 500 characters.");
+  }
   console.log(
     `Creating sound with id ${soundId}, display name ${name}, and text ${text}.`
   );
@@ -148,6 +160,13 @@ app.post(
     const { soundId } = req.params;
     const userId = req.authId;
     const { vote } = req.body;
+
+    const votes = new Set([-1, 0, 1]);
+
+    if (!votes.has(vote)) {
+      console.log(`${vote} on ${soundId} by ${userId} is not a valid vote.`);
+      res.sendStatus(400);
+    }
     console.log(`Userid ${userId} votes ${vote} on ${soundId}`);
 
     const oldVote = await store.upsertVote(soundId, userId, vote);

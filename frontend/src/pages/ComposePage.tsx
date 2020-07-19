@@ -40,7 +40,10 @@ export function ComposePage() {
   }, [api, rawFile]);
   const { user } = auth;
 
-  const submitDisabled = loadingFile;
+  const tooLong = text.length > 500;
+  const tooShort = text.length < 1;
+
+  const submitDisabled = tooShort || tooLong || loadingFile;
   return (
     <Container>
       {user && (
@@ -50,8 +53,9 @@ export function ComposePage() {
             item
             xs={12}
             sm={7}
-            direction="column"
+            direction="row"
             justify="center"
+            alignItems="center"
             style={{ marginTop: 40 }}
           >
             {user.admin && (
@@ -65,16 +69,23 @@ export function ComposePage() {
                 onChange={(e) => setDisplayName(e.target.value || "")}
               />
             )}
-            <TextField
-              helperText="What do you want to say?"
-              id={"Text"}
-              label={"Text content"}
-              multiline
-              rows={4}
-              variant={"outlined"}
-              style={{ minWidth: 300 }}
-              onChange={(e) => setText(e.target.value || "")}
-            />
+            <Grid container item xs={12} justify="center">
+              <TextField
+                helperText="What do you want to say?"
+                id={"Text"}
+                label={"Text content"}
+                multiline
+                rows={4}
+                variant={"outlined"}
+                style={{ width: "100%" }}
+                onChange={(e) => setText(e.target.value || "")}
+              />
+            </Grid>
+            <Grid container item xs={12} justify="flex-end">
+              <Typography color={text.length > 500 ? "secondary" : "inherit"}>
+                {text.length}/{500}
+              </Typography>
+            </Grid>
             <Grid
               container
               item
