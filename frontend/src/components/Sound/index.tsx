@@ -144,8 +144,8 @@ export function SoundCard({ active, sound }: SoundCardProps) {
         xs={12}
         justify="flex-start"
       >
-        <Grid item sm={1}>
-          <IconButton onClick={handleMenuOpen}>
+        <Grid item xs={1} sm={1}>
+          <IconButton onClick={handleMenuOpen} size="small" edge="start">
             <MoreVert />
           </IconButton>
           <Menu
@@ -183,7 +183,7 @@ export function SoundCard({ active, sound }: SoundCardProps) {
             />
           </IconButton>
         </Grid>
-        <Grid item xs={6} sm={1}>
+        <Grid container item xs={5} sm={8} justify="flex-end">
           <Typography>
             {`${Math.floor(sound.duration / 60)}:${Math.floor(
               sound.duration % 60
