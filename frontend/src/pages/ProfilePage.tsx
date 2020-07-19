@@ -1,11 +1,5 @@
 import React, { useContext, useState, useEffect } from "react";
-import {
-  Container,
-  Grid,
-  Button,
-  TextField,
-  Typography,
-} from "@material-ui/core";
+import { Container, Grid, Button, Typography } from "@material-ui/core";
 
 import { AuthContext } from "../components/User";
 import { FirebaseContext } from "../components/Firebase";

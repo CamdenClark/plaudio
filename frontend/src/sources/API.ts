@@ -15,6 +15,7 @@ export interface IAPI {
   upload(file: File): Promise<AudioFile>;
   me(): Promise<User>;
   updateProfile(profile: Partial<User>): Promise<void>;
+  report(soundId: string): Promise<void>;
 }
 
 const sounds: Sound[] = [
@@ -50,6 +51,12 @@ export class MockAPI implements IAPI {
   }
 
   vote(soundId: string, vote: number): Promise<void> {
+    return new Promise((resolve) => {
+      resolve();
+    });
+  }
+
+  report(soundId: string): Promise<void> {
     return new Promise((resolve) => {
       resolve();
     });
@@ -140,6 +147,16 @@ export class RealAPI implements IAPI {
       };
     }
     return {};
+  }
+
+  async report(soundId: string): Promise<void> {
+    const config = await this.getConfig();
+    const response = await this.client.post(
+      `/sounds/${soundId}/report`,
+      {},
+      config
+    );
+    return response.data;
   }
 
   async vote(soundId: string, vote: number): Promise<void> {

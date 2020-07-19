@@ -1,12 +1,21 @@
 import React, { useContext, useEffect, useState } from "react";
-import { Grid, Hidden, IconButton, Typography } from "@material-ui/core";
+import {
+  Grid,
+  Hidden,
+  IconButton,
+  Typography,
+  Menu,
+  MenuItem,
+} from "@material-ui/core";
 import {
   Error,
   HourglassEmpty,
+  MoreVert,
   VolumeUp,
   ThumbDown,
   ThumbUp,
 } from "@material-ui/icons";
+
 import { makeStyles } from "@material-ui/core/styles";
 
 import { SoundStatus, Sound } from "@plaudio/common";
@@ -51,6 +60,25 @@ export function SoundCard({ active, sound }: SoundCardProps) {
   const classes = useStyles({ active, sound });
   const [vote, setVote] = useState(0);
   const [originalVote, setOriginalVote] = useState(0);
+  const [anchorElement, setAnchorElement] = useState<Element | null>(null);
+
+  const handleMenuOpen = (
+    event: React.MouseEvent<HTMLButtonElement, MouseEvent>
+  ) => {
+    setAnchorElement(event.currentTarget);
+  };
+
+  const handleClose = () => {
+    setAnchorElement(null);
+  };
+
+  const onReport = () => {
+    if (sound) {
+      api.report(sound.soundId).then((_) => {
+        handleClose();
+      });
+    }
+  };
 
   const auth = useContext(AuthContext);
   const { api } = auth;
@@ -116,7 +144,20 @@ export function SoundCard({ active, sound }: SoundCardProps) {
         xs={12}
         justify="flex-start"
       >
-        <Grid sm={1} />
+        <Grid item sm={1}>
+          <IconButton onClick={handleMenuOpen}>
+            <MoreVert />
+          </IconButton>
+          <Menu
+            id={`${sound.soundId}-menu`}
+            keepMounted
+            anchorEl={anchorElement}
+            open={Boolean(anchorElement)}
+            onClose={handleClose}
+          >
+            <MenuItem onClick={onReport}>Report</MenuItem>
+          </Menu>
+        </Grid>
         <Grid container item alignItems="center" xs={6} sm={3}>
           <IconButton
             aria-label={vote === -1 ? "Remove downvote" : "Downvote"}
