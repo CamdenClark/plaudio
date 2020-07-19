@@ -1,13 +1,21 @@
 import React, { useContext, useEffect, useState } from "react";
-import { Grid, IconButton, Typography } from "@material-ui/core";
-import { ThumbDown, ThumbUp } from "@material-ui/icons";
+import { Grid, Hidden, IconButton, Typography } from "@material-ui/core";
+import {
+  Error,
+  HourglassEmpty,
+  VolumeUp,
+  ThumbDown,
+  ThumbUp,
+} from "@material-ui/icons";
 import { makeStyles } from "@material-ui/core/styles";
-import { Sound } from "../../models/Sound";
+
+import { SoundStatus, Sound } from "@plaudio/common";
 
 import { AuthContext } from "../User";
 
 type SoundCardProps = {
   sound: Sound;
+  active?: boolean;
 };
 
 const useStyles = makeStyles((theme) => ({
@@ -23,20 +31,27 @@ const useStyles = makeStyles((theme) => ({
     fontSize: "1.5rem",
     color: theme.palette.secondary.dark,
   },
-  conatiner: {
+  container: (props: SoundCardProps) => ({
     borderTop: "1px solid " + theme.palette.grey[700],
     padding: theme.spacing(1, 1),
     "&:hover": {
       backgroundColor: theme.palette.grey[300],
     },
-  },
+    color: props.active
+      ? theme.palette.primary.dark
+      : props.sound.status === SoundStatus.Error
+      ? theme.palette.secondary.dark
+      : props.sound.status === SoundStatus.Processing
+      ? theme.palette.grey[600]
+      : theme.palette.text.primary,
+  }),
 }));
 
-export function SoundCard({ sound }: SoundCardProps) {
-  const classes = useStyles();
-  const auth = useContext(AuthContext);
-
+export function SoundCard({ active, sound }: SoundCardProps) {
+  const classes = useStyles({ active, sound });
   const [vote, setVote] = useState(0);
+
+  const auth = useContext(AuthContext);
   const { api } = auth;
 
   const onVote = (vote: number) => {
@@ -52,7 +67,6 @@ export function SoundCard({ sound }: SoundCardProps) {
       api.getVote(sound.soundId).then((vote) => {
         setVote(vote.vote);
       });
-      // setVote(1);
     }
   }, [api, sound]);
 
@@ -62,16 +76,37 @@ export function SoundCard({ sound }: SoundCardProps) {
       direction="row"
       justify="flex-start"
       alignItems="center"
-      className={classes.conatiner}
+      className={classes.container}
     >
-      <Grid item xs={12} sm={3}>
-        <Typography style={{ fontSize: "0.8rem" }}>
-          {sound.displayName}
-        </Typography>
+      <Grid
+        container
+        item
+        xs={12}
+        sm={3}
+        alignItems="center"
+        justify="center"
+        direction="row"
+      >
+        {active || sound.status !== SoundStatus.Active ? (
+          <Grid container item xs={1} sm={3}>
+            {sound.status === SoundStatus.Error && <Error />}
+            {sound.status === SoundStatus.Processing && <HourglassEmpty />}
+            {active && <VolumeUp />}
+          </Grid>
+        ) : (
+          <Hidden xsDown>
+            <Grid item sm={3}></Grid>
+          </Hidden>
+        )}
+        <Grid item xs={11} sm={9}>
+          <Typography style={{ fontSize: "0.8rem" }}>
+            {sound.displayName}
+          </Typography>
+        </Grid>
       </Grid>
       <Grid item xs={12} sm={6} zeroMinWidth>
         <Typography
-          noWrap
+          noWrap={!active}
           style={{ fontSize: "1.1rem", textOverflow: "ellipsis" }}
         >
           {sound.text}
@@ -119,42 +154,3 @@ export function SoundCard({ sound }: SoundCardProps) {
     </Grid>
   );
 }
-
-/*
-
-    <Card>
-      <CardContent>
-        <Typography style={{ fontSize: "1rem" }}>
-          from user {sound.displayName}
-        </Typography>
-        <Typography style={{ fontSize: "1.6rem", textOverflow: "ellipsis" }}>
-          {sound.text}
-        </Typography>
-      </CardContent>
-      <CardActions>
-        <IconButton
-          aria-label={vote === -1 ? "Remove downvote" : "Downvote"}
-          onClick={() => {
-            vote === -1 ? onVote(0) : onVote(-1);
-          }}
-        >
-          <ThumbDown
-            className={vote === -1 ? classes.downvoteActive : classes.vote}
-          />
-        </IconButton>
-        <Typography style={{ fontWeight: "bold" }}>
-          {sound.score + (vote || 0)}
-        </Typography>
-        <IconButton
-          aria-label={vote === 1 ? "Remove upvote" : "Upvote"}
-          onClick={() => {
-            vote === 1 ? onVote(0) : onVote(1);
-          }}
-        >
-          <ThumbUp
-            className={vote === 1 ? classes.upvoteActive : classes.vote}
-          />
-        </IconButton>
-      </CardActions>
-    </Card>
-    */

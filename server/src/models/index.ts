@@ -1,4 +1,4 @@
-import { Sound } from "@plaudio/common";
+import { Sound, SoundStatus } from "@plaudio/common";
 
 interface FirebaseDate {
   seconds: number;
@@ -13,6 +13,7 @@ export interface DBSound {
   displayName: string;
   computedScore: number;
   sourceFile: string;
+  status: SoundStatus;
 }
 
 export const DBSoundToSound = (sound: DBSound): Sound => ({
@@ -26,4 +27,5 @@ export const DBSoundToSound = (sound: DBSound): Sound => ({
   userId: sound.userId,
   displayName: sound.displayName,
   text: sound.text,
+  status: sound.status,
 });

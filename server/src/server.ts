@@ -4,7 +4,7 @@ import cors from "cors";
 import shortid from "shortid";
 import Multer from "multer";
 
-import { User } from "@plaudio/common";
+import { SoundStatus, User } from "@plaudio/common";
 
 import { FirebaseAuth } from "./auth";
 import { Publish } from "./publish";
@@ -100,6 +100,7 @@ app.post("/sounds", checkIfAuthenticated, async (req: Request, res: any) => {
     score: 0,
     computedScore: 0,
     sourceFile: sourceFile || "",
+    status: SoundStatus.Processing,
   });
 
   await store.upsertVote(soundId, userId, 1);

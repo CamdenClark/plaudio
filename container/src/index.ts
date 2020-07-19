@@ -5,8 +5,11 @@ import util from "util";
 import bodyParser from "body-parser";
 import { Storage } from "@google-cloud/storage";
 import textToSpeech from "@google-cloud/text-to-speech";
+import { Firestore } from "@google-cloud/firestore";
+import { SoundStatus } from "@plaudio/common";
 
 const storage = new Storage();
+const firestore = new Firestore();
 const client = new textToSpeech.TextToSpeechClient();
 
 const app = express();
@@ -77,7 +80,12 @@ app.post("/", async (req: any, res: any) => {
           })
           .on("error", (err: any) => {
             console.log(`[ffmpeg] error: ${err.message}`);
-            reject();
+            firestore
+              .doc(`sounds/${soundId}`)
+              .update({ status: SoundStatus.Error })
+              .then((_) => {
+                reject();
+              });
           })
           .on("end", () => {
             console.log(`[ffmpeg] finished`);
@@ -102,7 +110,12 @@ app.post("/", async (req: any, res: any) => {
           })
           .on("error", (err: any) => {
             console.log(`[ffmpeg] error: ${err.message}`);
-            reject();
+            firestore
+              .doc(`sounds/${soundId}`)
+              .update({ status: SoundStatus.Error })
+              .then((_) => {
+                reject();
+              });
           })
           .on("end", () => {
             console.log(`[ffmpeg] finished`);
@@ -113,9 +126,13 @@ app.post("/", async (req: any, res: any) => {
       }
     } catch (error) {
       console.error(error.message);
+      res.status(400).send();
       reject();
     }
   });
+  await firestore
+    .doc(`sounds/${soundId}`)
+    .update({ status: SoundStatus.Active });
   await bucket.upload(`${soundId}.mp3`);
   res.status(204).send();
 });

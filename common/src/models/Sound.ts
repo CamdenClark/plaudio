@@ -1,3 +1,15 @@
+export enum SoundStatus {
+  Processing,
+  Active,
+  Error,
+}
+
+export interface UserSound {
+  soundId: string;
+  userId: string;
+  createdAt: number;
+}
+
 export interface Sound {
   soundId: string;
   text: string;
@@ -6,15 +18,5 @@ export interface Sound {
   url: string;
   userId: string;
   displayName: string;
-}
-
-export interface APISound {
-  soundId: string;
-  text: string;
-  score: number;
-  createdAt: Date;
-  userId: string;
-  displayName: string;
-  computedScore: number;
-  sourceFile: string;
+  status: SoundStatus;
 }

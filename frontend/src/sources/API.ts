@@ -1,6 +1,7 @@
 import axios, { AxiosInstance } from "axios";
 import { AudioFile } from "../models/AudioFile";
-import { Sound, UserSound } from "../models/Sound";
+import { UserSound } from "../models/Sound";
+import { Sound, SoundStatus } from "@plaudio/common";
 import { User } from "../models/User";
 import { Vote } from "../models/Vote";
 
@@ -25,6 +26,7 @@ const sounds: Sound[] = [
     createdAt: 1590306971,
     userId: "userid",
     displayName: "Bruh",
+    status: SoundStatus.Processing,
   },
   {
     soundId: "snd-biden2",
@@ -34,6 +36,7 @@ const sounds: Sound[] = [
     createdAt: 1590306941,
     userId: "userid",
     displayName: "Bruh",
+    status: SoundStatus.Processing,
   },
 ];
 
@@ -105,8 +108,8 @@ export class MockAPI implements IAPI {
 
 export class RealAPI implements IAPI {
   client: AxiosInstance = axios.create({
-    //baseURL: "http://localhost:8080",
-    baseURL: "https://api-dot-plaudio.uc.r.appspot.com",
+    baseURL: "http://localhost:8080",
+    //baseURL: "https://api-dot-plaudio.uc.r.appspot.com",
   });
 
   user?: firebase.User;

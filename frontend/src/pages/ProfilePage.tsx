@@ -11,7 +11,7 @@ import { AuthContext } from "../components/User";
 import { FirebaseContext } from "../components/Firebase";
 import { SoundCard } from "../components/Sound";
 
-import { Sound } from "../models/Sound";
+import { Sound } from "@plaudio/common";
 
 import { useHistory } from "react-router-dom";
 

@@ -1,6 +1,6 @@
 import { AudioFile } from "./AudioFile";
-import { APISound, Sound } from "./Sound";
+import { Sound, SoundStatus } from "./Sound";
 import { User } from "./User";
 import { Vote } from "./Vote";
 
-export { APISound, AudioFile, Sound, User, Vote };
+export { AudioFile, Sound, SoundStatus, User, Vote };

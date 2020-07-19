@@ -1,6 +1,8 @@
-import React, { useEffect } from "react";
+import React, { useContext, useEffect } from "react";
 import { Container, Grid } from "@material-ui/core";
 import { makeStyles } from "@material-ui/core/styles";
+
+import { AudioServiceContext } from "../components/Audio";
 import { Sound } from "../models/Sound";
 import { SoundCard } from "../components/Sound";
 
@@ -14,27 +16,25 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 type PlayerPageProps = {
-  loadSounds: (options?: { soundId?: string; next?: boolean }) => void;
+  loadSounds: (next: boolean, soundId?: string) => void;
   sound: Sound | null;
   queue: Sound[];
   queuePosition: number;
 };
 
-export function PlayerPage({
-  loadSounds,
-  sound,
-  queue,
-  queuePosition,
-}: PlayerPageProps) {
+export function PlayerPage() {
   const classes = useStyles();
   const history = useHistory();
+  const { loadSounds, sound, queue, queuePosition } = useContext(
+    AudioServiceContext
+  );
 
   useEffect(() => {
     if (!sound) {
       if (history.location.pathname === "/") {
-        loadSounds();
+        loadSounds(false);
       } else {
-        loadSounds({ soundId: history.location.pathname.substr(1) });
+        loadSounds(false, history.location.pathname.substr(1));
       }
     } else {
       history.push(`/${sound.soundId}`);
@@ -45,7 +45,10 @@ export function PlayerPage({
     <Container className={classes.main}>
       <Grid container direction="row" justify="center" alignItems="center">
         <Grid item xs={12} sm={9}>
-          {queue.map((sound) => sound && <SoundCard sound={sound} />)}
+          {queue.map(
+            (sound: any, i: number) =>
+              sound && <SoundCard sound={sound} active={i === queuePosition} />
+          )}
         </Grid>
       </Grid>
     </Container>

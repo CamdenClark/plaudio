@@ -1,4 +1,4 @@
-import { AudioFile, User } from "@plaudio/common";
+import { AudioFile, User, SoundStatus } from "@plaudio/common";
 import { Firestore } from "@google-cloud/firestore";
 
 import { DBSound } from "../models";
@@ -100,6 +100,7 @@ export class FirebaseStore implements IStore {
   async getTopSounds(): Promise<DBSound[]> {
     const query = this.store
       .collection("sounds")
+      .where("status", "==", SoundStatus.Active)
       .orderBy("computedScore", "desc")
       .limit(10);
     const sounds = await query.get();
@@ -110,6 +111,7 @@ export class FirebaseStore implements IStore {
     const query = this.store
       .collection("sounds")
       .where(`userId`, "==", userId)
+      .orderBy("createdAt", "desc")
       .limit(10);
     const sounds = await query.get();
     return sounds.docs.map((doc) => doc.data()) as DBSound[];
