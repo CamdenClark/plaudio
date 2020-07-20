@@ -1,6 +1,6 @@
 import "mocha";
 import { expect } from "chai";
-import { searchBites, replaceBiteSSML } from "../src/models/Bite";
+import { allBites, searchBites, replaceBiteSSML } from "../src/models/Bite";
 
 describe("Search bites", () => {
   it("Filters search terms correctly", () => {
@@ -16,6 +16,10 @@ describe("Search bites", () => {
   it("Search term with no matches returns no results", () => {
     const results = searchBites("invalidsearch");
     expect(results.length).to.be.equal(0);
+  });
+  it("Empty search term returns all bites", () => {
+    const results = searchBites("");
+    expect(results.length).to.be.equal(allBites.length);
   });
 });
 

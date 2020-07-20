@@ -7,10 +7,11 @@ import {
   Typography,
   CircularProgress,
 } from "@material-ui/core";
-import { Speaker } from "@material-ui/icons";
+import { Speaker, VolumeUp } from "@material-ui/icons";
 import { UserSound } from "../models/Sound";
 import { AudioFile } from "../models/AudioFile";
 import { AuthContext } from "../components/User";
+import { BitesModal } from "../components/Bites";
 import { useHistory } from "react-router-dom";
 
 const SpinnerAdornment = () => (
@@ -25,6 +26,7 @@ export function ComposePage() {
   const [displayName, setDisplayName] = useState("");
   const [audioFile, setAudioFile] = useState<AudioFile | null>(null);
   const [loadingFile, setLoadingFile] = useState(false);
+  const [soundBiteModalOpen, setSoundBiteModalOpen] = useState(false);
   const auth = useContext(AuthContext);
   const history = useHistory();
 
@@ -83,6 +85,7 @@ export function ComposePage() {
                 variant={"outlined"}
                 style={{ width: "100%" }}
                 onChange={(e) => setText(e.target.value || "")}
+                value={text}
               />
             </Grid>
             <Grid container item xs={12} justify="flex-end">
@@ -97,27 +100,39 @@ export function ComposePage() {
               justify="space-between"
               style={{ marginTop: 15 }}
             >
-              <input
-                accept="audio/*"
-                id="icon-button-file"
-                type="file"
-                hidden
-                onChange={(e) =>
-                  setRawFile(e.target?.files ? e.target.files[0] : null)
-                }
-              />
-              <label htmlFor="icon-button-file">
+              <Grid item>
+                <input
+                  accept="audio/*"
+                  id="icon-button-file"
+                  type="file"
+                  hidden
+                  onChange={(e) =>
+                    setRawFile(e.target?.files ? e.target.files[0] : null)
+                  }
+                />
+                <label htmlFor="icon-button-file">
+                  <Button
+                    size="large"
+                    variant="outlined"
+                    color="primary"
+                    component="span"
+                    endIcon={<Speaker />}
+                  >
+                    Add Audio
+                    {loadingFile && <SpinnerAdornment />}
+                  </Button>
+                </label>
                 <Button
                   size="large"
                   variant="outlined"
                   color="primary"
                   component="span"
-                  endIcon={<Speaker />}
+                  onClick={() => setSoundBiteModalOpen(true)}
+                  endIcon={<VolumeUp />}
                 >
-                  Add Audio
-                  {loadingFile && <SpinnerAdornment />}
+                  Add Bite
                 </Button>
-              </label>
+              </Grid>
               <Button
                 size="large"
                 variant="contained"
@@ -143,6 +158,11 @@ export function ComposePage() {
           </Grid>
         </Grid>
       )}
+      <BitesModal
+        addBite={(biteText: string) => setText(text + ` ${biteText}`)}
+        open={soundBiteModalOpen}
+        handleClose={() => setSoundBiteModalOpen(false)}
+      />
     </Container>
   );
 }
