@@ -7,6 +7,7 @@ import { Storage } from "@google-cloud/storage";
 import textToSpeech from "@google-cloud/text-to-speech";
 import { Firestore } from "@google-cloud/firestore";
 import { SoundStatus } from "@plaudio/common";
+import { replaceBiteSSML } from "@plaudio/common/dist/models/Bite";
 
 const storage = new Storage();
 const firestore = new Firestore();
@@ -14,14 +15,6 @@ const client = new textToSpeech.TextToSpeechClient();
 
 const app = express();
 app.use(bodyParser.json());
-
-const replaceSoundEmojis = (text: string) =>
-  text.replace(
-    "metalGearAlert",
-    `<audio src="https://www.myinstants.com/media/sounds/tindeck_1.mp3">
-        metalGearAlert
-        </audio>`
-  );
 
 type TTSRequestInput = {
   ssml: string;
@@ -43,7 +36,7 @@ type TTSRequest = {
 };
 
 const getSSML = ({ displayName, text }: any) =>
-  `<speak>User ${displayName} says, ${replaceSoundEmojis(text)}</speak>`;
+  `<speak>User ${displayName} says, ${replaceBiteSSML(text)}</speak>`;
 
 app.post("/", async (req: any, res: any) => {
   const { soundId, text, displayName, sourceFile } = JSON.parse(
