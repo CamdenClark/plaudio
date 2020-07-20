@@ -37,7 +37,9 @@ export const AudioService = (props: any) => {
         });
       } else {
         auth.api.loadSounds(0).then((sounds) => {
-          setQueue([...queue, ...sounds]);
+          const existing = new Set(queue.map((s) => s.soundId));
+          const soundsToInsert = sounds.filter((s) => !existing.has(s.soundId));
+          setQueue([...queue, ...soundsToInsert]);
           if (next) {
             setQueuePosition(queuePosition + 1);
           }

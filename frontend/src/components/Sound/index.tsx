@@ -15,8 +15,9 @@ import {
   ThumbDown,
   ThumbUp,
 } from "@material-ui/icons";
-
 import { makeStyles } from "@material-ui/core/styles";
+
+import { useHistory } from "react-router-dom";
 
 import { SoundStatus, Sound } from "@plaudio/common";
 
@@ -83,7 +84,13 @@ export function SoundCard({ active, sound }: SoundCardProps) {
   const auth = useContext(AuthContext);
   const { api } = auth;
 
+  const history = useHistory();
+
   const onVote = (newVote: number) => {
+    if (!auth.user) {
+      history.push(`/signin`);
+      return;
+    }
     if (sound) {
       api.vote(sound.soundId, newVote).then((_) => {
         setVote(newVote);
