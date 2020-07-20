@@ -75,6 +75,8 @@ app.get("/sounds", async (req: Request, res: any) => {
   res.send(sounds.map(DBSoundToSound));
 });
 
+const validTextCharacters = `^([a-zA-Z]|\\s|\\d|\\?|\\.|\\,|\\!|\\'|\\")*$`;
+
 app.post("/sounds", checkIfAuthenticated, async (req: Request, res: any) => {
   const { text, displayName, sourceFile } = req.body;
   const soundId = "snd-" + shortid.generate();
@@ -98,6 +100,11 @@ app.post("/sounds", checkIfAuthenticated, async (req: Request, res: any) => {
     res
       .status(400)
       .send("Text content too long, must be below 500 characters.");
+  }
+
+  if (!text.match(validTextCharacters)) {
+    console.log(`Text content ${text} doesn't meet validation requirements.`);
+    res.status(400).send("Text content contains invalid characters.");
   }
   console.log(
     `Creating sound with id ${soundId}, display name ${name}, and text ${text}.`
@@ -244,15 +251,25 @@ app.post("/users", async (req: any, res: any) => {
     res.status(400).send({ message: "You provided an invalid name" });
     return;
   }
-  const existingUserWithName = await store.getUserByDisplayName(name);
+  const existingUserWithName = await store.getUserByDisplayName(
+    lowerDisplayName
+  );
   if (existingUserWithName) {
     res.status(400).send({ message: "A user with that name already exists." });
     return;
   }
+
+  const lowercaseName = name.toLocaleLowerCase();
   auth
     .signup(email, password)
     .then((firebaseUser) => {
-      const user = { admin: false, email, name, id: firebaseUser.uid };
+      const user = {
+        admin: false,
+        email,
+        name,
+        lowercaseName,
+        id: firebaseUser.uid,
+      };
       store.createUser(user).then((_) => {
         res.status(200).send(user);
       });

@@ -73,6 +73,11 @@ export function SoundCard({ active, sound }: SoundCardProps) {
     setAnchorElement(null);
   };
 
+  const auth = useContext(AuthContext);
+  const { api } = auth;
+
+  const history = useHistory();
+
   const onReport = () => {
     if (sound) {
       api.report(sound.soundId).then((_) => {
@@ -80,11 +85,6 @@ export function SoundCard({ active, sound }: SoundCardProps) {
       });
     }
   };
-
-  const auth = useContext(AuthContext);
-  const { api } = auth;
-
-  const history = useHistory();
 
   const onVote = (newVote: number) => {
     if (!auth.user) {

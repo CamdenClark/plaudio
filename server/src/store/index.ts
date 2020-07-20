@@ -66,10 +66,12 @@ export class FirebaseStore implements IStore {
     }
   }
 
-  async getUserByDisplayName(displayName: string): Promise<User | null> {
+  async getUserByDisplayName(
+    lowercaseDisplayName: string
+  ): Promise<User | null> {
     const query = await this.store
       .collection(`users`)
-      .where("name", "==", displayName);
+      .where("lowercaseName", "==", lowercaseDisplayName);
     const results = await query.get();
     if (results.docs.length < 1) {
       return null;

@@ -17,6 +17,8 @@ const SpinnerAdornment = () => (
   <CircularProgress style={{ marginLeft: 5 }} size={20} />
 );
 
+const onlyCharactersAndSpaces = `^([a-zA-Z]|\\s|\\d|\\?|\\.|\\,|\\!|\\'|\\")*$`;
+
 export function ComposePage() {
   const [text, setText] = useState("");
   const [rawFile, setRawFile] = useState<File | null>(null);
@@ -42,8 +44,10 @@ export function ComposePage() {
 
   const tooLong = text.length > 500;
   const tooShort = text.length < 1;
+  const noInvalidCharacters = !text.match(onlyCharactersAndSpaces);
 
-  const submitDisabled = tooShort || tooLong || loadingFile;
+  const submitDisabled =
+    tooShort || tooLong || loadingFile || noInvalidCharacters;
   return (
     <Container>
       {user && (
@@ -71,9 +75,9 @@ export function ComposePage() {
             )}
             <Grid container item xs={12} justify="center">
               <TextField
-                helperText="What do you want to say?"
+                helperText={`Allowed characters are letters, numbers, ", ', !, ., !, ?`}
                 id={"Text"}
-                label={"Text content"}
+                label={"Text to speak"}
                 multiline
                 rows={4}
                 variant={"outlined"}

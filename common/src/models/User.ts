@@ -3,4 +3,5 @@ export interface User {
   email: string;
   admin: boolean;
   name: string;
+  lowercaseName: string;
 }
