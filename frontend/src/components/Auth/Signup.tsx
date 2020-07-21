@@ -3,6 +3,7 @@ import React, { useContext, useEffect, useState } from "react";
 import { AuthContext } from "../User";
 import { TextField, Button, Typography, makeStyles } from "@material-ui/core";
 import { useHistory } from "react-router-dom";
+import { SnackbarContext } from "../Snackbar";
 
 const useStyles = makeStyles((theme) => ({
   signupButton: {
@@ -30,6 +31,7 @@ const Signup = () => {
   const classes = useStyles();
   const history = useHistory();
   const auth = useContext(AuthContext);
+  const snackbar = useContext(SnackbarContext);
 
   const { api } = auth;
 
@@ -56,9 +58,21 @@ const Signup = () => {
     if (signupDisabled) {
       return;
     }
-    api.signup({ name, email, password }).then((user) => {
-      setTimeout(() => history.push(`/`), 500);
-    });
+    api
+      .signup({ name, email, password })
+      .then((user) => {
+        snackbar.setSnackbar({
+          message: "Successfully signed up, you can now sign in",
+          severity: "success",
+        });
+        setTimeout(() => history.push(`/`), 500);
+      })
+      .catch((err) => {
+        snackbar.setSnackbar({
+          message: "Something went wrong while trying to sign up",
+          severity: "error",
+        });
+      });
   };
 
   useEffect(() => {

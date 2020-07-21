@@ -22,6 +22,7 @@ import { useHistory } from "react-router-dom";
 import { SoundStatus, Sound } from "@plaudio/common";
 
 import { AuthContext } from "../User";
+import { SnackbarContext } from "../Snackbar";
 
 type SoundCardProps = {
   sound: Sound;
@@ -63,6 +64,8 @@ export function SoundCard({ active, sound }: SoundCardProps) {
   const [originalVote, setOriginalVote] = useState(0);
   const [anchorElement, setAnchorElement] = useState<Element | null>(null);
 
+  const snackbar = useContext(SnackbarContext);
+
   const handleMenuOpen = (
     event: React.MouseEvent<HTMLButtonElement, MouseEvent>
   ) => {
@@ -74,13 +77,17 @@ export function SoundCard({ active, sound }: SoundCardProps) {
   };
 
   const auth = useContext(AuthContext);
-  const { api } = auth;
+  const { api, user } = auth;
 
   const history = useHistory();
 
   const onReport = () => {
     if (sound) {
       api.report(sound.soundId).then((_) => {
+        snackbar.setSnackbar({
+          message: "Successfully reported sound",
+          severity: "info",
+        });
         handleClose();
       });
     }
@@ -99,13 +106,13 @@ export function SoundCard({ active, sound }: SoundCardProps) {
   };
 
   useEffect(() => {
-    if (sound) {
+    if (sound && user) {
       api.getVote(sound.soundId).then((vote) => {
         setOriginalVote(vote.vote);
         setVote(vote.vote);
       });
     }
-  }, [api, sound]);
+  }, [api, sound, user]);
 
   return (
     <Grid

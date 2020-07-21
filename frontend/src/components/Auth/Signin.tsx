@@ -3,6 +3,7 @@ import React, { useContext, useEffect, useState } from "react";
 import { FirebaseContext } from "../Firebase";
 import { TextField, Button, makeStyles } from "@material-ui/core";
 import { useHistory } from "react-router-dom";
+import { SnackbarContext } from "../Snackbar";
 
 const useStyles = makeStyles((theme) => ({
   signinButton: {
@@ -16,12 +17,23 @@ const Signin = () => {
   const classes = useStyles();
   const firebase = useContext(FirebaseContext);
   const history = useHistory();
+  const snackbar = useContext(SnackbarContext);
+
   const login = (email: string, password: string) => {
-    firebase?.doSignInWithEmailAndPassword(email, password).then((user) => {
-      if (user) {
-        history.push(`/`);
-      }
-    });
+    firebase
+      ?.doSignInWithEmailAndPassword(email, password)
+      .then((user) => {
+        snackbar.setSnackbar({ message: "Successfully signed in" });
+        if (user) {
+          history.push(`/`);
+        }
+      })
+      .catch((err) => {
+        snackbar.setSnackbar({
+          message: "Something went wrong signing you in",
+          severity: "error",
+        });
+      });
   };
 
   useEffect(() => {

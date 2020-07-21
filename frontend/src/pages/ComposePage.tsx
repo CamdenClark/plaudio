@@ -13,6 +13,7 @@ import { AudioFile } from "../models/AudioFile";
 import { AuthContext } from "../components/User";
 import { BitesModal } from "../components/Bites";
 import { useHistory } from "react-router-dom";
+import { SnackbarContext } from "../components/Snackbar";
 
 const SpinnerAdornment = () => (
   <CircularProgress style={{ marginLeft: 5 }} size={20} />
@@ -28,20 +29,31 @@ export function ComposePage() {
   const [loadingFile, setLoadingFile] = useState(false);
   const [soundBiteModalOpen, setSoundBiteModalOpen] = useState(false);
   const auth = useContext(AuthContext);
+  const snackbar = useContext(SnackbarContext);
   const history = useHistory();
 
   const { api } = auth;
 
-  const onSubmit = (sound: UserSound) => api.submit(sound);
+  const onSubmit = (sound: UserSound) =>
+    api.submit(sound).then((sound) => {
+      snackbar.setSnackbar({
+        message: `Successfully created sound ${sound.soundId}`,
+        severity: "success",
+      });
+    });
   React.useEffect(() => {
     if (rawFile) {
       setLoadingFile(true);
       api.upload(rawFile).then((audioFile) => {
+        snackbar.setSnackbar({
+          message: "Successfully uploaded file",
+          severity: "success",
+        });
         setLoadingFile(false);
         setAudioFile(audioFile);
       });
     }
-  }, [api, rawFile]);
+  }, [api, rawFile, snackbar]);
   const { user } = auth;
 
   const tooLong = text.length > 500;

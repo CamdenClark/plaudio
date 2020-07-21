@@ -110,7 +110,7 @@ app.post("/sounds", checkIfAuthenticated, async (req: Request, res: any) => {
     `Creating sound with id ${soundId}, display name ${name}, and text ${text}.`
   );
   const userId = user.id;
-  await store.createSound({
+  const dbSound = {
     soundId,
     userId,
     displayName: name,
@@ -121,7 +121,8 @@ app.post("/sounds", checkIfAuthenticated, async (req: Request, res: any) => {
     computedScore: 0,
     sourceFile: sourceFile || "",
     status: SoundStatus.Processing,
-  });
+  };
+  await store.createSound(dbSound);
 
   await store.upsertVote(soundId, userId, 1);
 
@@ -137,7 +138,7 @@ app.post("/sounds", checkIfAuthenticated, async (req: Request, res: any) => {
     scoreDelta: 1,
   });
 
-  res.sendStatus(200);
+  res.status(200).send(DBSoundToSound(dbSound));
 });
 
 app.get("/sounds/:soundId", async (req: Request, res: any) => {

@@ -18,6 +18,7 @@ import { FirebaseContext } from "./components/Firebase";
 import { AuthContext } from "./components/User";
 import { Auth } from "./components/User/context";
 import { AudioService, AudioServiceContext } from "./components/Audio";
+import { SnackbarProvider } from "./components/Snackbar";
 
 const Main = () => {
   return (
@@ -96,9 +97,11 @@ function App() {
   return (
     <AuthContext.Provider value={auth}>
       <ThemeProvider theme={theme}>
-        <AudioService>
-          <Main />
-        </AudioService>
+        <SnackbarProvider>
+          <AudioService>
+            <Main />
+          </AudioService>
+        </SnackbarProvider>
       </ThemeProvider>
     </AuthContext.Provider>
   );
