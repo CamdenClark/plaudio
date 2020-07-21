@@ -55,9 +55,9 @@ app.post("/", async (req: any, res: any) => {
   console.log(`Synthesized speech for ${soundId}`);
   await writeFile(`${soundId}-tts.mp3`, response.audioContent, "binary");
   console.log(`Saved synthesized speech for ${soundId}`);
-  const bucket = storage.bucket("plaudio-main");
+  const rawBucket = storage.bucket("plaudio-raw");
   if (sourceFile.length > 0) {
-    await bucket.file(sourceFile).download({ destination: sourceFile });
+    await rawBucket.file(sourceFile).download({ destination: sourceFile });
     console.log(`Saved source file`);
   }
 
@@ -145,7 +145,8 @@ app.post("/", async (req: any, res: any) => {
   await firestore
     .doc(`sounds/${soundId}`)
     .update({ status: SoundStatus.Active, duration });
-  await bucket.upload(`${soundId}.mp3`);
+  const mainBucket = storage.bucket("plaudio-main");
+  await mainBucket.upload(`${soundId}.mp3`);
   res.status(204).send();
 });
 app.listen(8080, "0.0.0.0");

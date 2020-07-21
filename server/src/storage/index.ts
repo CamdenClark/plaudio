@@ -8,7 +8,7 @@ export class Filestorage implements IStorage {
   storage = new Storage();
 
   uploadAudioFile(file: any, onFinish: any, onError: any): any {
-    const bucket = this.storage.bucket("plaudio-main");
+    const bucket = this.storage.bucket("plaudio-raw");
 
     const blob = bucket.file(file.originalname);
     const blobStream = blob.createWriteStream();
