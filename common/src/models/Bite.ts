@@ -10,6 +10,41 @@ export const allBites = [
     duration: 2,
     url: "https://storage.googleapis.com/plaudio-bites/metalGearAlert.mp3",
   },
+  {
+    name: "militaryCountdown",
+    duration: 6,
+    url: "https://storage.googleapis.com/plaudio-bites/militaryCountdown.mp3",
+  },
+  {
+    name: "militaryFire",
+    duration: 1,
+    url: "https://storage.googleapis.com/plaudio-bites/militaryFire.mp3",
+  },
+  {
+    name: "natureCrickets",
+    duration: 2,
+    url: "https://storage.googleapis.com/plaudio-bites/natureCrickets.mp3",
+  },
+  {
+    name: "spongebobTwoHours",
+    duration: 3,
+    url: "https://storage.googleapis.com/plaudio-bites/spongebobTwoHours.mp3",
+  },
+  {
+    name: "trumpWrong",
+    duration: 1,
+    url: "https://storage.googleapis.com/plaudio-bites/trumpWrong.mp3",
+  },
+  {
+    name: "XPShutdown",
+    duration: 3,
+    url: "https://storage.googleapis.com/plaudio-bites/XPShutdown.mp3",
+  },
+  {
+    name: "XPStartup",
+    duration: 5,
+    url: "https://storage.googleapis.com/plaudio-bites/XPStartup.mp3",
+  },
 ];
 
 const nameToBites: Record<string, Bite> = allBites.reduce(

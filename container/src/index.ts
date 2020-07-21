@@ -85,18 +85,30 @@ app.post("/", async (req: any, res: any) => {
             resolve();
           })
           .output(`${soundId}.mp3`)
-          .complexFilter({
-            filter: "concat",
-            options: {
-              n: 2,
-              v: 0,
-              a: 1,
-            },
-          })
+          .complexFilter(
+            [
+              {
+                filter: "concat",
+                options: {
+                  n: 2,
+                  v: 0,
+                  a: 1,
+                },
+                outputs: "a",
+              },
+              {
+                filter: "loudnorm",
+                inputs: "a",
+                outputs: "output",
+              },
+            ],
+            "output"
+          )
           .run();
       } else {
         ffmpeg()
           .input(`${soundId}-tts.mp3`)
+          .audioFilters([{ filter: "loudnorm", options: {} }])
           .audioBitrate(256)
           .on("progress", (progress: any) => {
             console.log(`[ffmpeg] ${JSON.stringify(progress)}`);

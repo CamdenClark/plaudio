@@ -7,7 +7,7 @@ import {
   Typography,
   CircularProgress,
 } from "@material-ui/core";
-import { Speaker, VolumeUp } from "@material-ui/icons";
+import { Speaker, Audiotrack } from "@material-ui/icons";
 import { UserSound } from "../models/Sound";
 import { AudioFile } from "../models/AudioFile";
 import { AuthContext } from "../components/User";
@@ -128,7 +128,7 @@ export function ComposePage() {
                   color="primary"
                   component="span"
                   onClick={() => setSoundBiteModalOpen(true)}
-                  endIcon={<VolumeUp />}
+                  endIcon={<Audiotrack />}
                 >
                   Add Bite
                 </Button>

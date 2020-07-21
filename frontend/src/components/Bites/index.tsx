@@ -74,6 +74,7 @@ export const BitesModal = ({ addBite, handleClose, open }: any) => {
           label="Search for bites"
           autoFocus
           onChange={(event) => setSearchTerm(event.target.value || "")}
+          style={{ marginBottom: 10 }}
         />
         <Grid container>
           {searchResults.map((bite) => (

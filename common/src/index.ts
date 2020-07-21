@@ -1,3 +1,21 @@
-import { AudioFile, Sound, SoundStatus, User, Vote } from "./models";
+import {
+  AudioFile,
+  Bite,
+  Sound,
+  SoundStatus,
+  User,
+  Vote,
+  searchBites,
+  replaceBiteSSML,
+} from "./models";
 
-export { AudioFile, Sound, SoundStatus, User, Vote };
+export {
+  AudioFile,
+  Bite,
+  Sound,
+  SoundStatus,
+  User,
+  Vote,
+  searchBites,
+  replaceBiteSSML,
+};
