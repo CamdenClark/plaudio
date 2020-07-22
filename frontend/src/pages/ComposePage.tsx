@@ -45,15 +45,11 @@ export function ComposePage() {
     if (rawFile) {
       setLoadingFile(true);
       api.upload(rawFile).then((audioFile) => {
-        snackbar.setSnackbar({
-          message: "Successfully uploaded file",
-          severity: "success",
-        });
         setLoadingFile(false);
         setAudioFile(audioFile);
       });
     }
-  }, [api, rawFile, snackbar]);
+  }, [api, rawFile]);
   const { user } = auth;
 
   const tooLong = text.length > 500;

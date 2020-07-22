@@ -8,6 +8,7 @@ import { AudioFooter, Header } from "./components/Layout";
 
 import { RealAPI } from "./sources/API";
 import {
+  AboutPage,
   ComposePage,
   PlayerPage,
   ProfilePage,
@@ -46,6 +47,9 @@ const Main = () => {
             </Route>
             <Route path={`/compose`}>
               <ComposePage />
+            </Route>
+            <Route path={`/about`}>
+              <AboutPage />
             </Route>
             <Route path={`/:soundId`}>
               <PlayerPage />

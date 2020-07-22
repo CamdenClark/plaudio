@@ -134,7 +134,7 @@ export function SoundCard({ active, sound }: SoundCardProps) {
         </Hidden>
       )}
       <Grid item xs={10} sm={3}>
-        <Typography style={{ fontSize: "0.8rem" }}>
+        <Typography style={{ fontSize: "1rem" }}>
           {sound.displayName}
         </Typography>
       </Grid>

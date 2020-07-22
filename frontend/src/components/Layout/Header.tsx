@@ -6,7 +6,7 @@ import {
   Toolbar,
   Typography,
 } from "@material-ui/core";
-import { Edit, AccountCircle } from "@material-ui/icons";
+import { Edit, AccountCircle, Help } from "@material-ui/icons";
 import { makeStyles } from "@material-ui/core/styles";
 
 import { Link as RouterLink, useHistory } from "react-router-dom";
@@ -56,6 +56,13 @@ export const Header = ({ soundId }: { soundId: string | null }) => {
             plaud.io
           </Link>
         </Typography>
+        <IconButton
+          aria-label={"About"}
+          color={"inherit"}
+          onClick={() => history.push("/about")}
+        >
+          <Help />
+        </IconButton>
         {auth.loggedIn && (
           <IconButton
             aria-label={"Compose"}
