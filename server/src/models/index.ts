@@ -1,15 +1,12 @@
 import { Sound, SoundStatus } from "@plaudio/common";
-
-interface FirebaseDate {
-  seconds: number;
-}
+import { Timestamp } from "@google-cloud/firestore";
 
 export interface DBSound {
   soundId: string;
   text: string;
   score: number;
   duration: number;
-  createdAt: FirebaseDate | Date;
+  createdAt: Timestamp;
   userId: string;
   displayName: string;
   computedScore: number;

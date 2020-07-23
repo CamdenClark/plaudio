@@ -35,12 +35,21 @@ export function ComposePage() {
   const { api } = auth;
 
   const onSubmit = (sound: UserSound) =>
-    api.submit(sound).then((sound) => {
-      snackbar.setSnackbar({
-        message: `Successfully created sound ${sound.soundId}`,
-        severity: "success",
+    api
+      .submit(sound)
+      .then((sound) => {
+        snackbar.setSnackbar({
+          message: `Successfully created sound ${sound.soundId}`,
+          severity: "success",
+        });
+        history.push(`/profile`);
+      })
+      .catch((err) => {
+        snackbar.setSnackbar({
+          message: `${err.response.data}`,
+          severity: "error",
+        });
       });
-    });
   React.useEffect(() => {
     if (rawFile) {
       setLoadingFile(true);
@@ -152,7 +161,6 @@ export function ComposePage() {
                     text,
                     sourceFile: audioFile?.name,
                   });
-                  history.push(`/profile`);
                 }}
               >
                 Submit

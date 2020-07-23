@@ -4,6 +4,7 @@ import cors from "cors";
 import shortid from "shortid";
 import Multer from "multer";
 
+import { Timestamp } from "@google-cloud/firestore";
 import { SoundStatus, User } from "@plaudio/common";
 
 import { FirebaseAuth } from "./auth";
@@ -88,11 +89,13 @@ app.post("/sounds", checkIfAuthenticated, async (req: Request, res: any) => {
   const name = user.admin ? displayName : user.name;
   if (!name) {
     res.status(400).send("Can't submit if you don't have a name");
+    return;
   }
 
   if (!text || text.length < 1) {
     console.log(`You need text to submit a sound.`);
     res.status(400).send("You need to submit text along with a sound.");
+    return;
   }
 
   if (text.length > 500) {
@@ -100,11 +103,26 @@ app.post("/sounds", checkIfAuthenticated, async (req: Request, res: any) => {
     res
       .status(400)
       .send("Text content too long, must be below 500 characters.");
+    return;
   }
 
   if (!text.match(validTextCharacters)) {
     console.log(`Text content ${text} doesn't meet validation requirements.`);
     res.status(400).send("Text content contains invalid characters.");
+    return;
+  }
+
+  const mySounds = await store.getMySounds(user.id);
+  if (
+    mySounds.filter(
+      (sound) => sound.createdAt.toDate() > new Date(Date.now() - 86400000)
+    ).length >= 5
+  ) {
+    console.log(`You've already posted 5 times today`);
+    res
+      .status(400)
+      .send("You've already made 5 submissions in the last 24 hours.");
+    return;
   }
   console.log(
     `Creating sound with id ${soundId}, display name ${name}, and text ${text}.`
@@ -115,14 +133,14 @@ app.post("/sounds", checkIfAuthenticated, async (req: Request, res: any) => {
     userId,
     displayName: name,
     text,
-    createdAt: new Date(Date.now()),
+    createdAt: Timestamp.fromDate(new Date(Date.now())),
     duration: 0,
     score: 0,
     computedScore: 0,
     sourceFile: sourceFile || "",
     status: SoundStatus.Processing,
   };
-  await store.createSound(dbSound);
+  const sound = await store.createSound(dbSound);
 
   await store.upsertVote(soundId, userId, 1);
 
@@ -138,7 +156,7 @@ app.post("/sounds", checkIfAuthenticated, async (req: Request, res: any) => {
     scoreDelta: 1,
   });
 
-  res.status(200).send(DBSoundToSound(dbSound));
+  res.status(200).send(sound);
 });
 
 app.get("/sounds/:soundId", async (req: Request, res: any) => {
