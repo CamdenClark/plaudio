@@ -5,6 +5,8 @@ import { Sound, SoundStatus } from "@plaudio/common";
 import { User } from "../models/User";
 import { Vote } from "../models/Vote";
 
+const baseURL = process.env.REACT_APP_API_URL;
+
 export interface IAPI {
   getVote(soundId: string): Promise<Vote>;
   vote(soundId: string, vote: number): Promise<void>;
@@ -130,7 +132,7 @@ export class MockAPI implements IAPI {
 
 export class RealAPI implements IAPI {
   client: AxiosInstance = axios.create({
-    baseURL: process.env.REACT_APP_API_URL,
+    baseURL,
   });
 
   user?: firebase.User;
