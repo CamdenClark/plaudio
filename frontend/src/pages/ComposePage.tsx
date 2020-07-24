@@ -46,7 +46,7 @@ export function ComposePage() {
       })
       .catch((err) => {
         snackbar.setSnackbar({
-          message: `${err.response.data}`,
+          message: `${err.response ? err.response.data : err}`,
           severity: "error",
         });
       });

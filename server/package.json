@@ -9,7 +9,7 @@
   "main": "dist/server.js",
   "scripts": {
     "build": "tsc",
-    "start": "node dist/server.js",
+    "start": "tsc && node dist/server.js",
     "test": "mocha -r ts-node/register 'test/**/*.ts'"
   },
   "author": "",
