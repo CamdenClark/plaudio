@@ -135,14 +135,11 @@ app.post("/sounds", checkIfAuthenticated, async (req: Request, res: any) => {
     text,
     createdAt: Timestamp.fromDate(new Date(Date.now())),
     duration: 0,
-    score: 0,
-    computedScore: 0,
+    favorites: 0,
     sourceFile: sourceFile || "",
     status: SoundStatus.Processing,
   };
   const sound = await store.createSound(dbSound);
-
-  await store.upsertVote(soundId, userId, 1);
 
   await publish.publishSound({
     text,
@@ -151,9 +148,10 @@ app.post("/sounds", checkIfAuthenticated, async (req: Request, res: any) => {
     sourceFile: sourceFile || "",
   });
 
-  await publish.publishVote({
+  await publish.publishFavorite({
     soundId,
-    scoreDelta: 1,
+    userId,
+    score: 1,
   });
 
   res.status(200).send(sound);
@@ -168,39 +166,34 @@ app.get("/sounds/:soundId", async (req: Request, res: any) => {
 });
 
 app.get(
-  "/sounds/:soundId/vote",
+  "/sounds/:soundId/favorite",
   checkIfAuthenticated,
   async (req: Request, res: any) => {
     const { soundId } = req.params;
     const userId = req.authId;
-    const vote = await store.getVote(soundId, userId);
+    const favorite = await store.getFavorite(soundId, userId);
 
-    res.status(200).send(vote);
+    res.status(200).send(favorite);
   }
 );
 
 app.post(
-  "/sounds/:soundId/vote",
+  "/sounds/:soundId/favorite",
   checkIfAuthenticated,
   async (req: Request, res: any) => {
     const { soundId } = req.params;
     const userId = req.authId;
-    const { vote } = req.body;
+    const { score } = req.body;
 
-    const votes = new Set([-1, 0, 1]);
+    const scores = new Set([0, 1]);
 
-    if (!votes.has(vote)) {
-      console.log(`${vote} on ${soundId} by ${userId} is not a valid vote.`);
+    if (!scores.has(score)) {
+      console.log(`${score} on ${soundId} by ${userId} is not a valid vote.`);
       res.sendStatus(400);
     }
-    console.log(`Userid ${userId} votes ${vote} on ${soundId}`);
+    console.log(`Userid ${userId} votes ${score} on ${soundId}`);
 
-    const oldVote = await store.upsertVote(soundId, userId, vote);
-
-    const scoreDelta = vote - oldVote;
-    if (scoreDelta !== 0) {
-      await publish.publishVote({ soundId, scoreDelta });
-    }
+    await publish.publishFavorite({ soundId, score, userId });
     res.sendStatus(200);
   }
 );

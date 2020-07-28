@@ -4,12 +4,11 @@ import { Timestamp } from "@google-cloud/firestore";
 export interface DBSound {
   soundId: string;
   text: string;
-  score: number;
+  favorites: number;
   duration: number;
   createdAt: Timestamp;
   userId: string;
   displayName: string;
-  computedScore: number;
   sourceFile: string;
   status: SoundStatus;
 }
@@ -22,7 +21,7 @@ export const DBSoundToSound = (sound: DBSound): Sound => ({
       ? sound.createdAt.getUTCSeconds()
       : sound.createdAt.seconds,
   duration: sound.duration,
-  score: sound.score,
+  favorites: sound.favorites,
   userId: sound.userId,
   displayName: sound.displayName,
   text: sound.text,

@@ -4,8 +4,7 @@ import { Firestore } from "@google-cloud/firestore";
 import { DBSound } from "../models";
 
 export interface IStore {
-  getVote(soundId: string, userId: string): Promise<number>;
-  upsertVote(soundId: string, userId: string, vote: number): Promise<number>;
+  getFavorite(soundId: string, userId: string): Promise<number>;
   createUser(user: User): Promise<void>;
   getUser(userId: string): Promise<User>;
   getUserByDisplayName(displayName: string): Promise<User | null>;
@@ -23,33 +22,15 @@ export class FirebaseStore implements IStore {
     this.store = new Firestore({ projectid: "plaudio" });
   }
 
-  async getVote(soundId: string, userId: string): Promise<any> {
+  async getFavorite(soundId: string, userId: string): Promise<any> {
     const voteDocument = await this.store.doc(
-      `sounds/${soundId}/votes/${userId}`
+      `sounds/${soundId}/favorites/${userId}`
     );
     const vote = await voteDocument.get();
     if (vote.exists) {
       return vote.data();
     }
     return { vote: 0 };
-  }
-
-  async upsertVote(
-    soundId: string,
-    userId: string,
-    vote: number
-  ): Promise<number> {
-    const voteDocument = await this.store.doc(
-      `sounds/${soundId}/votes/${userId}`
-    );
-    const existingVote = await voteDocument.get();
-    if (existingVote.exists) {
-      await voteDocument.update({ vote });
-      return existingVote.get("vote");
-    } else {
-      await voteDocument.set({ vote });
-      return 0;
-    }
   }
 
   async createUser(user: User): Promise<void> {

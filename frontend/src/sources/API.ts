@@ -1,15 +1,14 @@
 import axios, { AxiosInstance } from "axios";
 import { AudioFile } from "../models/AudioFile";
 import { UserSound } from "../models/Sound";
-import { Sound, SoundStatus } from "@plaudio/common";
+import { Favorite, Sound, SoundStatus } from "@plaudio/common";
 import { User } from "../models/User";
-import { Vote } from "../models/Vote";
 
 const baseURL = process.env.REACT_APP_API_URL;
 
 export interface IAPI {
-  getVote(soundId: string): Promise<Vote>;
-  vote(soundId: string, vote: number): Promise<void>;
+  getFavorite(soundId: string): Promise<Favorite>;
+  favorite(soundId: string, score: number): Promise<void>;
   submit(sound: Partial<Sound>): Promise<Sound>;
   loadMySounds(): Promise<Sound[]>;
   loadSounds(page: number): Promise<Sound[]>;
@@ -29,7 +28,7 @@ const sounds: Sound[] = [
     soundId: "snd-biden",
     text: "Biden test 1",
     url: "https://storage.googleapis.com/plaudio-main/snd-biden8.mp3",
-    score: 2,
+    favorites: 1,
     createdAt: 1590306971,
     userId: "userid",
     displayName: "Bruh",
@@ -40,7 +39,7 @@ const sounds: Sound[] = [
     soundId: "snd-biden2",
     text: "Biden test 2",
     url: "https://storage.cloud.google.com/plaudio-main/snd-vivaldi.mp3",
-    score: 2,
+    favorites: 2,
     createdAt: 1590306941,
     userId: "userid",
     displayName: "Bruh",
@@ -50,13 +49,13 @@ const sounds: Sound[] = [
 ];
 
 export class MockAPI implements IAPI {
-  getVote(soundId: string): Promise<Vote> {
+  getFavorite(soundId: string): Promise<Favorite> {
     return new Promise((resolve) => {
-      resolve({ vote: 0 });
+      resolve({ score: 0 });
     });
   }
 
-  vote(soundId: string, vote: number): Promise<void> {
+  favorite(soundId: string, vote: number): Promise<void> {
     return new Promise((resolve) => {
       resolve();
     });
@@ -173,19 +172,22 @@ export class RealAPI implements IAPI {
     return response.data;
   }
 
-  async vote(soundId: string, vote: number): Promise<void> {
+  async favorite(soundId: string, score: number): Promise<void> {
     const config = await this.getConfig();
     const response = await this.client.post(
-      `/sounds/${soundId}/vote`,
-      { vote },
+      `/sounds/${soundId}/favorite`,
+      { score },
       config
     );
     return response.data;
   }
 
-  async getVote(soundId: string): Promise<Vote> {
+  async getFavorite(soundId: string): Promise<Favorite> {
     const config = await this.getConfig();
-    const response = await this.client.get(`/sounds/${soundId}/vote`, config);
+    const response = await this.client.get(
+      `/sounds/${soundId}/favorite`,
+      config
+    );
     return response.data;
   }
 

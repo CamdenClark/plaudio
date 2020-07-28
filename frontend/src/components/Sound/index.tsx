@@ -14,6 +14,7 @@ import {
   VolumeUp,
   ThumbDown,
   ThumbUp,
+  Favorite,
 } from "@material-ui/icons";
 import { makeStyles } from "@material-ui/core/styles";
 
@@ -60,8 +61,8 @@ const useStyles = makeStyles((theme) => ({
 
 export function SoundCard({ active, sound }: SoundCardProps) {
   const classes = useStyles({ active, sound });
-  const [vote, setVote] = useState(0);
-  const [originalVote, setOriginalVote] = useState(0);
+  const [favorite, setFavorite] = useState(0);
+  const [originalFavorite, setOriginalFavorite] = useState(0);
   const [anchorElement, setAnchorElement] = useState<Element | null>(null);
 
   const snackbar = useContext(SnackbarContext);
@@ -93,23 +94,23 @@ export function SoundCard({ active, sound }: SoundCardProps) {
     }
   };
 
-  const onVote = (newVote: number) => {
+  const onFavorite = (newVote: number) => {
     if (!auth.user) {
       history.push(`/signin`);
       return;
     }
     if (sound) {
-      api.vote(sound.soundId, newVote).then((_) => {
-        setVote(newVote);
+      api.favorite(sound.soundId, newVote).then((_) => {
+        setFavorite(newVote);
       });
     }
   };
 
   useEffect(() => {
     if (sound && user) {
-      api.getVote(sound.soundId).then((vote) => {
-        setOriginalVote(vote.vote);
-        setVote(vote.vote);
+      api.getFavorite(sound.soundId).then((favorite) => {
+        setOriginalFavorite(favorite.score);
+        setFavorite(favorite.score);
       });
     }
   }, [api, sound, user]);
@@ -174,28 +175,20 @@ export function SoundCard({ active, sound }: SoundCardProps) {
         </Grid>
         <Grid container item alignItems="center" xs={6} sm={3}>
           <IconButton
-            aria-label={vote === -1 ? "Remove downvote" : "Downvote"}
+            aria-label={favorite === -1 ? "Remove downvote" : "Downvote"}
             onClick={() => {
-              vote === -1 ? onVote(0) : onVote(-1);
+              favorite === -1 ? onFavorite(0) : onFavorite(-1);
             }}
           >
-            <ThumbDown
-              className={vote === -1 ? classes.downvoteActive : classes.vote}
+            <Favorite
+              className={
+                favorite === -1 ? classes.downvoteActive : classes.vote
+              }
             />
           </IconButton>
           <Typography style={{ fontWeight: "bold" }}>
-            {sound.score - (originalVote - vote)}
+            {sound.favorites + (favorite - originalFavorite)}
           </Typography>
-          <IconButton
-            aria-label={vote === 1 ? "Remove upvote" : "Upvote"}
-            onClick={() => {
-              vote === 1 ? onVote(0) : onVote(1);
-            }}
-          >
-            <ThumbUp
-              className={vote === 1 ? classes.upvoteActive : classes.vote}
-            />
-          </IconButton>
         </Grid>
         <Grid container item xs={5} sm={8} justify="flex-end">
           <Typography>

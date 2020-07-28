@@ -9,33 +9,33 @@ type ComputeScoreEvent = {
 };
 
 exports.computeScore = async (pubSubEvent: ComputeScoreEvent) => {
-  const { soundId, scoreDelta } = JSON.parse(
+  const { soundId, score, userId } = JSON.parse(
     Buffer.from(pubSubEvent.data, "base64").toString()
   );
 
-  console.log(`Updating sound ${soundId} with score delta ${scoreDelta}`);
+  console.log(
+    `Updating sound ${soundId} with score ${score} by user ${userId}`
+  );
   const soundDocument = firestore.doc(`sounds/${soundId}`);
   const sound = await soundDocument.get();
-  const data = sound.data();
-  if (!data) {
+  if (!sound.exists) {
     return;
   }
-  const { createdAt, score } = data;
+  const favorites = sound.get("favorites");
 
-  const newScore = score + scoreDelta;
-  console.log(
-    `Computed document with score ${newScore} and created at ${createdAt.seconds}`
+  const oldFavoriteDocument = firestore.doc(
+    `sound/${soundId}/favorites/${userId}`
   );
-
-  const tS = createdAt.seconds - 1590285563;
-  const y = newScore > 0 ? 1 : newScore === 0 ? 0 : -1;
-  const z = Math.abs(newScore) < 1 ? 1 : Math.abs(newScore);
-  const computedScore = Math.log10(z) + (y * tS) / 45000;
-  console.log(`New computed score for ${soundId}: ${computedScore}`);
+  const oldFavorite = await oldFavoriteDocument.get();
+  let newFavorites = favorites;
+  if (!oldFavorite.exists) {
+    newFavorites = favorites + score;
+  } else {
+    newFavorites = favorites + score - oldFavorite.get("score");
+  }
+  await oldFavoriteDocument.set({ score });
 
   await soundDocument.update({
-    score: newScore,
-    computedScore,
+    favorites: newFavorites,
   });
-  console.log(`Updated sound succesfully`);
 };
