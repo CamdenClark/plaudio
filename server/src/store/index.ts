@@ -96,7 +96,7 @@ export class FirebaseStore implements IStore {
     const query = this.store
       .collection("sounds")
       .where("status", "==", SoundStatus.Active)
-      .orderBy("computedScore", "desc")
+      .orderBy("favorites", "desc")
       .limit(10);
     const sounds = await query.get();
     return sounds.docs.map((doc) => doc.data()) as DBSound[];

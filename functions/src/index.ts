@@ -24,7 +24,7 @@ exports.computeScore = async (pubSubEvent: ComputeScoreEvent) => {
   const favorites = sound.get("favorites");
 
   const oldFavoriteDocument = firestore.doc(
-    `sound/${soundId}/favorites/${userId}`
+    `sounds/${soundId}/favorites/${userId}`
   );
   const oldFavorite = await oldFavoriteDocument.get();
   let newFavorites = favorites;

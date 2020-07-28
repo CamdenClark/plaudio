@@ -168,6 +168,9 @@ export function SoundCard({ active, sound }: SoundCardProps) {
           </Menu>
         </Grid>
         <Grid container item alignItems="center" xs={6} sm={3}>
+          <Typography style={{ fontWeight: "bold" }}>
+            {sound.favorites + (favorite - originalFavorite)}
+          </Typography>
           <IconButton
             aria-label={favorite === 1 ? "Remove favorite" : "Favorite"}
             onClick={() => {
@@ -180,9 +183,6 @@ export function SoundCard({ active, sound }: SoundCardProps) {
               }
             />
           </IconButton>
-          <Typography style={{ fontWeight: "bold" }}>
-            {sound.favorites + (favorite - originalFavorite)}
-          </Typography>
         </Grid>
         <Grid container item xs={5} sm={8} justify="flex-end">
           <Typography>
