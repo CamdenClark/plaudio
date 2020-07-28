@@ -12,8 +12,6 @@ import {
   HourglassEmpty,
   MoreVert,
   VolumeUp,
-  ThumbDown,
-  ThumbUp,
   Favorite,
 } from "@material-ui/icons";
 import { makeStyles } from "@material-ui/core/styles";
@@ -31,17 +29,13 @@ type SoundCardProps = {
 };
 
 const useStyles = makeStyles((theme) => ({
-  vote: {
+  favorite: {
     fontSize: "1.3rem",
     color: "inherit",
   },
-  upvoteActive: {
+  favoriteActive: {
     fontSize: "1.3rem",
-    color: theme.palette.primary.dark,
-  },
-  downvoteActive: {
-    fontSize: "1.3rem",
-    color: theme.palette.secondary.dark,
+    color: theme.palette.secondary.light,
   },
   container: (props: SoundCardProps) => ({
     borderTop: "1px solid " + theme.palette.grey[700],
@@ -175,14 +169,14 @@ export function SoundCard({ active, sound }: SoundCardProps) {
         </Grid>
         <Grid container item alignItems="center" xs={6} sm={3}>
           <IconButton
-            aria-label={favorite === -1 ? "Remove downvote" : "Downvote"}
+            aria-label={favorite === 1 ? "Remove favorite" : "Favorite"}
             onClick={() => {
-              favorite === -1 ? onFavorite(0) : onFavorite(-1);
+              favorite === 1 ? onFavorite(0) : onFavorite(1);
             }}
           >
             <Favorite
               className={
-                favorite === -1 ? classes.downvoteActive : classes.vote
+                favorite === 1 ? classes.favoriteActive : classes.favorite
               }
             />
           </IconButton>

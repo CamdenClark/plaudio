@@ -23,14 +23,14 @@ export class FirebaseStore implements IStore {
   }
 
   async getFavorite(soundId: string, userId: string): Promise<any> {
-    const voteDocument = await this.store.doc(
+    const favoriteDocument = await this.store.doc(
       `sounds/${soundId}/favorites/${userId}`
     );
-    const vote = await voteDocument.get();
-    if (vote.exists) {
-      return vote.data();
+    const favorite = await favoriteDocument.get();
+    if (favorite.exists) {
+      return favorite.data();
     }
-    return { vote: 0 };
+    return { score: 0 };
   }
 
   async createUser(user: User): Promise<void> {
