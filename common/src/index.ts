@@ -1,10 +1,10 @@
 import {
   AudioFile,
   Bite,
+  Favorite,
   Sound,
   SoundStatus,
   User,
-  Vote,
   searchBites,
   replaceBiteSSML,
 } from "./models";
@@ -12,10 +12,10 @@ import {
 export {
   AudioFile,
   Bite,
+  Favorite,
   Sound,
   SoundStatus,
   User,
-  Vote,
   searchBites,
   replaceBiteSSML,
 };

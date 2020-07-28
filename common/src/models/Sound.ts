@@ -13,7 +13,7 @@ export interface UserSound {
 export interface Sound {
   soundId: string;
   text: string;
-  score: number;
+  favorites: number;
   createdAt: number;
   url: string;
   userId: string;
