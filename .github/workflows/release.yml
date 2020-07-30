@@ -84,7 +84,7 @@ jobs:
           node-version: ${{ matrix.node-version }}
       - name: Generate .npmrc
         run: echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" > .npmrc
-        working-directory: ./server
+        working-directory: ./functions
       - uses: bahmutov/npm-install@v1
         with:
           working-directory: functions
