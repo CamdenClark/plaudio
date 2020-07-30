@@ -1,4 +1,5 @@
-import { Firestore } from "@google-cloud/firestore";
+import { Firestore, FieldValue } from "@google-cloud/firestore";
+import { SoundStatus } from "@plaudio/common";
 
 const firestore = new Firestore({
   projectid: "plaudio",
@@ -38,4 +39,35 @@ exports.computeScore = async (pubSubEvent: ComputeScoreEvent) => {
   await soundDocument.update({
     favorites: newFavorites,
   });
+};
+
+exports.renderSuccess = async (pubSubEvent: ComputeScoreEvent) => {
+  const { soundId, userId, duration } = JSON.parse(
+    Buffer.from(pubSubEvent.data, "base64").toString()
+  );
+
+  console.log(`Marking ${soundId} by user ${userId} as succeeded.`);
+
+  const createdAt = new Date(Date.now());
+
+  await firestore.doc(`feeds/${userId}`).update({
+    lastPosted: createdAt,
+    recentPosts: FieldValue.arrayUnion({ soundId, createdAt }),
+  });
+
+  await firestore
+    .doc(`sounds/${soundId}`)
+    .update({ status: SoundStatus.Active, duration });
+};
+
+exports.renderFailure = async (pubSubEvent: ComputeScoreEvent) => {
+  const { soundId, userId } = JSON.parse(
+    Buffer.from(pubSubEvent.data, "base64").toString()
+  );
+
+  console.log(`Marking ${soundId} by user ${userId} as failed.`);
+
+  await firestore
+    .doc(`sounds/${soundId}`)
+    .update({ status: SoundStatus.Error });
 };

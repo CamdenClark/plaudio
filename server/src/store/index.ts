@@ -1,5 +1,5 @@
 import { AudioFile, User, SoundStatus } from "@plaudio/common";
-import { Firestore } from "@google-cloud/firestore";
+import { Firestore, FieldValue } from "@google-cloud/firestore";
 
 import { DBSound } from "../models";
 
@@ -8,12 +8,14 @@ export interface IStore {
   createUser(user: User): Promise<void>;
   getUser(userId: string): Promise<User>;
   getUserByDisplayName(displayName: string): Promise<User | null>;
-  updateUser(userId: string, updates: Partial<User>): Promise<void>;
   createFile(file: AudioFile): Promise<AudioFile>;
   createSound(sound: DBSound): Promise<DBSound>;
   getSound(soundId: string): Promise<DBSound>;
   getTopSounds(): Promise<DBSound[]>;
   getMySounds(userId: string): Promise<DBSound[]>;
+  getFeedSounds(userId: string): Promise<DBSound[]>;
+  follow(followed: string, follower: string): Promise<void>;
+  unfollow(followed: string, follower: string): Promise<void>;
 }
 
 export class FirebaseStore implements IStore {
@@ -58,10 +60,6 @@ export class FirebaseStore implements IStore {
       return null;
     }
     return results.docs[0].data() as User;
-  }
-
-  async updateUser(userId: string, updates: Partial<User>): Promise<void> {
-    await this.store.doc(`users/${userId}`).update(updates);
   }
 
   async createFile(audioFile: AudioFile): Promise<AudioFile> {
@@ -110,5 +108,50 @@ export class FirebaseStore implements IStore {
       .limit(10);
     const sounds = await query.get();
     return sounds.docs.map((doc) => doc.data()) as DBSound[];
+  }
+
+  async getProfileSounds(displayName: string): Promise<DBSound[]> {
+    const query = this.store
+      .collection("sounds")
+      .where(`displayName`, "==", displayName)
+      .orderBy("createdAt", "desc")
+      .limit(10);
+    const sounds = await query.get();
+    return sounds.docs.map((doc) => doc.data()) as DBSound[];
+  }
+
+  async getFeedSounds(userId: string): Promise<DBSound[]> {
+    const query = this.store
+      .collection("feeds")
+      .where(`followers`, "array-contains", userId)
+      .orderBy("lastPosted", "desc")
+      .limit(10);
+    const feed = await query.get();
+    const feedSounds = feed.docs
+      .map((doc) => doc.data())
+      .reduce((acc, cur) => acc.concat(cur.recentSounds), [])
+      .sort(
+        (a: Partial<DBSound>, b: Partial<DBSound>) =>
+          (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0)
+      )
+      .map((sound: DBSound) => sound.soundId);
+
+    const soundQuery = this.store
+      .collection("sounds")
+      .where(`soundId`, "in", feedSounds);
+    const sounds = await soundQuery.get();
+    return sounds.docs.map((doc) => doc.data()) as DBSound[];
+  }
+
+  async follow(followed: string, follower: string): Promise<void> {
+    await this.store
+      .doc(`feeds/${followed}`)
+      .update({ followers: FieldValue.arrayUnion(follower) });
+  }
+
+  async unfollow(followed: string, follower: string): Promise<void> {
+    await this.store
+      .doc(`feeds/${followed}`)
+      .update({ followers: FieldValue.arrayRemove(follower) });
   }
 }

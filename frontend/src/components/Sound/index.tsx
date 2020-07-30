@@ -94,9 +94,8 @@ export function SoundCard({ active, sound }: SoundCardProps) {
       return;
     }
     if (sound) {
-      api.favorite(sound.soundId, newVote).then((_) => {
-        setFavorite(newVote);
-      });
+      setFavorite(newVote);
+      api.favorite(sound.soundId, newVote);
     }
   };
 
