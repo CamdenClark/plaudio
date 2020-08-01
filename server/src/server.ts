@@ -233,6 +233,12 @@ app.get("/users/me", checkIfAuthenticated, async (req: Request, res: any) => {
   res.send(user);
 });
 
+app.get("/users/:displayName/sounds", async (req: any, res: any) => {
+  const { displayName } = req.params;
+  const sounds = await store.getProfileSounds(displayName);
+  res.send(sounds.filter((snd) => snd.status === SoundStatus.Active));
+});
+
 app.get(
   "/users/me/sounds",
   checkIfAuthenticated,
