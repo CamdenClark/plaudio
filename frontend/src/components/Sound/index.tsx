@@ -21,10 +21,11 @@ import { useHistory, Link as RouterLink } from "react-router-dom";
 
 import { SoundStatus, Sound } from "@plaudio/common";
 
-import { AuthContext } from "../User";
 import { SnackbarContext } from "../Snackbar";
 
 import { api } from "../../sources/API";
+import { useSelector } from "react-redux";
+import { RootState } from "../../store";
 
 type SoundCardProps = {
   sound: Sound;
@@ -74,8 +75,7 @@ export function SoundCard({ active, sound }: SoundCardProps) {
     setAnchorElement(null);
   };
 
-  const auth = useContext(AuthContext);
-  const { user } = auth;
+  const user = useSelector((state: RootState) => state.user);
 
   const history = useHistory();
 
@@ -92,7 +92,7 @@ export function SoundCard({ active, sound }: SoundCardProps) {
   };
 
   const onFavorite = (newVote: number) => {
-    if (!auth.user) {
+    if (!user) {
       history.push(`/signin`);
       return;
     }

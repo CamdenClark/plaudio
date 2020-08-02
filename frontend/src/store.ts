@@ -1,12 +1,9 @@
-import {
-  configureStore,
-  createSlice,
-  Action,
-  createReducer,
-  createAction,
-} from "@reduxjs/toolkit";
+import { configureStore, Action } from "@reduxjs/toolkit";
 import { ThunkAction } from "redux-thunk";
-import { Sound } from "@plaudio/common";
+
+import user from "./features/user/userSlice";
+
+/*
 
 const counterSlice = createSlice({
   name: "counter",
@@ -17,16 +14,10 @@ const counterSlice = createSlice({
   },
 });
 
-type RootState = {
-  queue: Sound[];
-  history: Sound[];
-  current: Sound | null;
-};
-
 const queueNext = createAction("QUEUE_NEXT");
 const queuePrevious = createAction("QUEUE_PREVIOUS");
 
-createReducer<RootState>(
+createReducer(
   {
     queue: [],
     history: [],
@@ -55,11 +46,12 @@ createReducer<RootState>(
     },
   }
 );
-
-export type AppThunk = ThunkAction<void, RootState, unknown, Action<string>>;
+*/
 
 const store = configureStore({
-  reducer: counterSlice.reducer,
+  reducer: user,
 });
+export type RootState = ReturnType<typeof store.getState>;
+export type AppThunk = ThunkAction<void, RootState, unknown, Action<string>>;
 
 export default store;

@@ -1,4 +1,4 @@
-import React, { useContext } from "react";
+import React from "react";
 import {
   AppBar,
   IconButton,
@@ -9,9 +9,10 @@ import {
 import { Edit, AccountCircle, Help } from "@material-ui/icons";
 import { makeStyles } from "@material-ui/core/styles";
 
+import { useSelector } from "react-redux";
 import { Link as RouterLink, useHistory } from "react-router-dom";
 
-import { AuthContext } from "../User";
+import { RootState } from "../../store";
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -40,7 +41,7 @@ const useStyles = makeStyles((theme) => ({
 export const Header = ({ soundId }: { soundId: string | null }) => {
   const classes = useStyles();
   const history = useHistory();
-  const auth = useContext(AuthContext);
+  const loggedIn = useSelector((state: RootState) => state.loggedIn);
 
   return (
     <AppBar position="static">
@@ -63,7 +64,7 @@ export const Header = ({ soundId }: { soundId: string | null }) => {
         >
           <Help />
         </IconButton>
-        {auth.loggedIn && (
+        {loggedIn && (
           <IconButton
             aria-label={"Compose"}
             color={"inherit"}
@@ -73,10 +74,10 @@ export const Header = ({ soundId }: { soundId: string | null }) => {
           </IconButton>
         )}
         <IconButton
-          aria-label={auth.loggedIn ? "Profile" : "Sign in"}
+          aria-label={loggedIn ? "Profile" : "Sign in"}
           color={"inherit"}
           onClick={() =>
-            auth.loggedIn ? history.push("/profile") : history.push("/signin")
+            loggedIn ? history.push("/profile") : history.push("/signin")
           }
         >
           <AccountCircle />

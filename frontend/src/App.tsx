@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from "react";
+import React, { useContext, useEffect } from "react";
 import { BrowserRouter as Router, Switch, Route } from "react-router-dom";
 
 import { createMuiTheme, ThemeProvider } from "@material-ui/core/styles";
@@ -15,12 +15,11 @@ import {
   SignupPage,
 } from "./pages";
 import { FirebaseContext } from "./components/Firebase";
-import { AuthContext } from "./components/User";
-import { Auth } from "./components/User/context";
 import { AudioService, AudioServiceContext } from "./components/Audio";
 import { SnackbarProvider } from "./components/Snackbar";
 
-import { api } from "./sources/API";
+import { useDispatch } from "react-redux";
+import { fetchMe, logOut } from "./features/user/userSlice";
 
 const Main = () => {
   return (
@@ -79,36 +78,27 @@ const theme = createMuiTheme({
 
 function App() {
   const firebase = useContext(FirebaseContext);
-  const [auth, setAuth] = useState<Auth>({
-    loggedIn: false,
-  });
+  const dispatch = useDispatch();
 
   useEffect(() => {
-    console.log("effect used");
     const unsub = firebase?.auth.onAuthStateChanged((firebaseUser) => {
-      console.log("Auth state changed");
       if (firebaseUser) {
-        api.me().then((user) => {
-          setAuth({ loggedIn: true, user });
-        });
+        dispatch(fetchMe());
       } else {
-        console.log("Firebase user doesn't exist yet");
-        setAuth({ loggedIn: false });
+        dispatch(logOut());
       }
     });
     return unsub;
-  }, [firebase]);
+  }, [dispatch, firebase]);
 
   return (
-    <AuthContext.Provider value={auth}>
-      <ThemeProvider theme={theme}>
-        <SnackbarProvider>
-          <AudioService>
-            <Main />
-          </AudioService>
-        </SnackbarProvider>
-      </ThemeProvider>
-    </AuthContext.Provider>
+    <ThemeProvider theme={theme}>
+      <SnackbarProvider>
+        <AudioService>
+          <Main />
+        </AudioService>
+      </SnackbarProvider>
+    </ThemeProvider>
   );
 }
 

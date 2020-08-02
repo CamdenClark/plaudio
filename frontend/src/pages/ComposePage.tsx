@@ -10,12 +10,14 @@ import {
 import { Speaker, Audiotrack } from "@material-ui/icons";
 import { UserSound } from "../models/Sound";
 import { AudioFile } from "../models/AudioFile";
-import { AuthContext } from "../components/User";
 import { BitesModal } from "../components/Bites";
-import { useHistory } from "react-router-dom";
 import { SnackbarContext } from "../components/Snackbar";
-
 import { api } from "../sources/API";
+
+import { useHistory } from "react-router-dom";
+import { useSelector } from "react-redux";
+
+import { RootState } from "../store";
 
 const SpinnerAdornment = () => (
   <CircularProgress style={{ marginLeft: 5 }} size={20} />
@@ -30,7 +32,8 @@ export function ComposePage() {
   const [audioFile, setAudioFile] = useState<AudioFile | null>(null);
   const [loadingFile, setLoadingFile] = useState(false);
   const [soundBiteModalOpen, setSoundBiteModalOpen] = useState(false);
-  const auth = useContext(AuthContext);
+
+  const user = useSelector((state: RootState) => state.user);
   const snackbar = useContext(SnackbarContext);
   const history = useHistory();
 
@@ -59,7 +62,6 @@ export function ComposePage() {
       });
     }
   }, [rawFile]);
-  const { user } = auth;
 
   const tooLong = text.length > 500;
   const tooShort = text.length < 1;

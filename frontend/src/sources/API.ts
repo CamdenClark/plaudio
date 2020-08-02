@@ -1,10 +1,9 @@
 import axios, { AxiosInstance } from "axios";
 import { AudioFile } from "../models/AudioFile";
 import { UserSound } from "../models/Sound";
-import { Favorite, Sound, SoundStatus } from "@plaudio/common";
-import { User } from "../models/User";
+import { Favorite, Sound, SoundStatus, User } from "@plaudio/common";
 
-import firebase from "firebase";
+import firebase from "firebase/app";
 
 const baseURL = process.env.REACT_APP_API_URL;
 
@@ -111,6 +110,7 @@ export class MockAPI implements IAPI {
         email: "test@test.com",
         admin: false,
         name: "test",
+        lowercaseName: "test",
       });
     });
   }
@@ -126,6 +126,7 @@ export class MockAPI implements IAPI {
         email: "test@test.com",
         admin: false,
         name: "test",
+        lowercaseName: "test",
       });
     });
   }

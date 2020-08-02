@@ -1,7 +1,6 @@
 import React, { useContext, useState, useEffect } from "react";
 import { Container, Grid, Button, Typography } from "@material-ui/core";
 
-import { AuthContext } from "../components/User";
 import { FirebaseContext } from "../components/Firebase";
 import { SoundCard } from "../components/Sound";
 import { api } from "../sources/API";
@@ -9,14 +8,16 @@ import { api } from "../sources/API";
 import { Sound } from "@plaudio/common";
 
 import { useHistory, useParams } from "react-router-dom";
+import { useSelector } from "react-redux";
+import { RootState } from "../store";
 
 export const ProfilePage = () => {
+  const user = useSelector((state: RootState) => state.user);
   const firebase = useContext(FirebaseContext);
-  const auth = useContext(AuthContext);
   const history = useHistory();
   const { displayName } = useParams();
 
-  const name = displayName ? displayName : auth.user?.name.replace(" ", "_");
+  const name = displayName ? displayName : user?.name.replace(" ", "_");
 
   const [sounds, setSounds] = useState([] as Sound[]);
 
@@ -45,11 +46,11 @@ export const ProfilePage = () => {
             {name && (
               <Typography variant="h4">{name.replace("_", " ")}</Typography>
             )}
-            {!displayName && auth.user && auth.user.email && (
-              <Typography>Email: {auth.user.email}</Typography>
+            {!displayName && user && user.email && (
+              <Typography>Email: {user.email}</Typography>
             )}
           </Grid>
-          {!displayName && auth.user && (
+          {!displayName && user && (
             <Grid container item xs={4} justify="flex-end" alignItems="center">
               <Button
                 onClick={() => {
@@ -65,7 +66,7 @@ export const ProfilePage = () => {
           )}
           <Grid item xs={12} style={{ marginTop: "1rem" }}>
             {sounds.map((sound) => (
-              <SoundCard sound={sound} />
+              <SoundCard key={sound.soundId} sound={sound} />
             ))}
           </Grid>
         </Grid>
