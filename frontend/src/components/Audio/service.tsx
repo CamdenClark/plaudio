@@ -1,14 +1,9 @@
-import React, {
-  useCallback,
-  useContext,
-  useEffect,
-  useRef,
-  useState,
-} from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 
-import { AuthContext } from "../User";
 import { Sound } from "@plaudio/common";
 import AudioServiceContext from "./context";
+
+import { api } from "../../sources/API";
 
 type AudioState = {
   playing: boolean;
@@ -22,31 +17,32 @@ export const AudioService = (props: any) => {
   const [queue, setQueue] = useState([] as Sound[]);
   const [queuePosition, setQueuePosition] = useState(0);
 
-  const auth = useContext(AuthContext);
-
   const { current } = player;
 
   const loadSounds = useCallback(
     (next: boolean, soundId?: string) => {
       if (soundId) {
-        auth.api.loadSound(soundId).then((sound) => {
-          setQueue([sound, ...queue]);
-          if (next) {
-            setQueuePosition(queuePosition + 1);
+        api.loadSound(soundId).then((sound) => {
+          const existing = new Set(queue.map((s) => s.soundId));
+          if (!existing.has(sound.soundId)) {
+            setQueue([sound, ...queue]);
+            if (next) {
+              setQueuePosition(queuePosition + 1);
+            }
           }
         });
       } else {
-        auth.api.loadSounds(0).then((sounds) => {
+        api.loadSounds(0).then((sounds) => {
           const existing = new Set(queue.map((s) => s.soundId));
           const soundsToInsert = sounds.filter((s) => !existing.has(s.soundId));
           setQueue([...queue, ...soundsToInsert]);
-          if (next) {
+          if (next && queuePosition < queue.length - 1) {
             setQueuePosition(queuePosition + 1);
           }
         });
       }
     },
-    [auth, queue, queuePosition, setQueue, setQueuePosition]
+    [queue, queuePosition, setQueue, setQueuePosition]
   );
 
   const onNext = useCallback(() => {

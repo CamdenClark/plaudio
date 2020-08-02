@@ -1,9 +1,10 @@
 import React, { useContext, useEffect, useState } from "react";
 
-import { AuthContext } from "../User";
 import { TextField, Button, Typography, makeStyles } from "@material-ui/core";
 import { useHistory } from "react-router-dom";
 import { SnackbarContext } from "../Snackbar";
+
+import { api } from "../../sources/API";
 
 const useStyles = makeStyles((theme) => ({
   signupButton: {
@@ -30,10 +31,7 @@ const onlyCharactersAndSpaces = "^([a-z]|\\s)*$";
 const Signup = () => {
   const classes = useStyles();
   const history = useHistory();
-  const auth = useContext(AuthContext);
   const snackbar = useContext(SnackbarContext);
-
-  const { api } = auth;
 
   const [displayName, setDisplayName] = useState("");
   const [email, setEmail] = useState("");

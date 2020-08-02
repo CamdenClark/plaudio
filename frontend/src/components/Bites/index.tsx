@@ -29,8 +29,7 @@ const BiteRow = ({ addBite, bite, onPlay }: any) => {
       className={classes.row}
     >
       <Grid item xs={8}>
-        <Typography></Typography>
-        {bite.name}
+        <Typography>{bite.name}</Typography>
       </Grid>
       <Grid item xs={2}>
         <IconButton onClick={() => onPlay(bite)}>

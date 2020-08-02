@@ -15,6 +15,8 @@ import { BitesModal } from "../components/Bites";
 import { useHistory } from "react-router-dom";
 import { SnackbarContext } from "../components/Snackbar";
 
+import { api } from "../sources/API";
+
 const SpinnerAdornment = () => (
   <CircularProgress style={{ marginLeft: 5 }} size={20} />
 );
@@ -31,8 +33,6 @@ export function ComposePage() {
   const auth = useContext(AuthContext);
   const snackbar = useContext(SnackbarContext);
   const history = useHistory();
-
-  const { api } = auth;
 
   const onSubmit = (sound: UserSound) =>
     api
@@ -58,7 +58,7 @@ export function ComposePage() {
         setAudioFile(audioFile);
       });
     }
-  }, [api, rawFile]);
+  }, [rawFile]);
   const { user } = auth;
 
   const tooLong = text.length > 500;

@@ -3,9 +3,10 @@ import {
   Grid,
   Hidden,
   IconButton,
-  Typography,
+  Link,
   Menu,
   MenuItem,
+  Typography,
 } from "@material-ui/core";
 import {
   Error,
@@ -16,12 +17,14 @@ import {
 } from "@material-ui/icons";
 import { makeStyles } from "@material-ui/core/styles";
 
-import { useHistory } from "react-router-dom";
+import { useHistory, Link as RouterLink } from "react-router-dom";
 
 import { SoundStatus, Sound } from "@plaudio/common";
 
 import { AuthContext } from "../User";
 import { SnackbarContext } from "../Snackbar";
+
+import { api } from "../../sources/API";
 
 type SoundCardProps = {
   sound: Sound;
@@ -72,7 +75,7 @@ export function SoundCard({ active, sound }: SoundCardProps) {
   };
 
   const auth = useContext(AuthContext);
-  const { api, user } = auth;
+  const { user } = auth;
 
   const history = useHistory();
 
@@ -106,7 +109,7 @@ export function SoundCard({ active, sound }: SoundCardProps) {
         setFavorite(favorite.score);
       });
     }
-  }, [api, sound, user]);
+  }, [sound, user]);
 
   return (
     <Grid
@@ -129,7 +132,13 @@ export function SoundCard({ active, sound }: SoundCardProps) {
       )}
       <Grid item xs={10} sm={3}>
         <Typography style={{ fontSize: "1rem" }}>
-          {sound.displayName}
+          <Link
+            color={"inherit"}
+            component={RouterLink}
+            to={`/users/${sound.displayName.replace(" ", "_")}`}
+          >
+            {sound.displayName}
+          </Link>
         </Typography>
       </Grid>
       <Grid item xs={12} sm={8} zeroMinWidth>

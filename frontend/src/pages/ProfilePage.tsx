@@ -4,25 +4,29 @@ import { Container, Grid, Button, Typography } from "@material-ui/core";
 import { AuthContext } from "../components/User";
 import { FirebaseContext } from "../components/Firebase";
 import { SoundCard } from "../components/Sound";
+import { api } from "../sources/API";
 
 import { Sound } from "@plaudio/common";
 
-import { useHistory } from "react-router-dom";
+import { useHistory, useParams } from "react-router-dom";
 
 export const ProfilePage = () => {
   const firebase = useContext(FirebaseContext);
   const auth = useContext(AuthContext);
   const history = useHistory();
+  const { displayName } = useParams();
+
+  const name = displayName ? displayName : auth.user?.name.replace(" ", "_");
 
   const [sounds, setSounds] = useState([] as Sound[]);
 
-  const { api } = auth;
-
   useEffect(() => {
-    api.loadMySounds().then((snds) => {
-      setSounds(snds);
-    });
-  }, [api]);
+    if (name) {
+      api.loadProfileSounds(name).then((snds) => {
+        setSounds(snds);
+      });
+    }
+  }, [name]);
 
   return (
     <Container>
@@ -38,25 +42,27 @@ export const ProfilePage = () => {
           style={{ marginTop: 40 }}
         >
           <Grid item xs={8}>
-            {auth.user && auth.user.name && (
-              <Typography variant="h4">{auth.user.name}</Typography>
+            {name && (
+              <Typography variant="h4">{name.replace("_", " ")}</Typography>
             )}
-            {auth.user && auth.user.email && (
+            {!displayName && auth.user && auth.user.email && (
               <Typography>Email: {auth.user.email}</Typography>
             )}
           </Grid>
-          <Grid container item xs={4} justify="flex-end" alignItems="center">
-            <Button
-              onClick={() => {
-                firebase?.doSignOut();
-                history.push(`/`);
-              }}
-              variant={"outlined"}
-              color={"secondary"}
-            >
-              Sign Out
-            </Button>
-          </Grid>
+          {!displayName && auth.user && (
+            <Grid container item xs={4} justify="flex-end" alignItems="center">
+              <Button
+                onClick={() => {
+                  firebase?.doSignOut();
+                  history.push(`/`);
+                }}
+                variant={"outlined"}
+                color={"secondary"}
+              >
+                Sign Out
+              </Button>
+            </Grid>
+          )}
           <Grid item xs={12} style={{ marginTop: "1rem" }}>
             {sounds.map((sound) => (
               <SoundCard sound={sound} />

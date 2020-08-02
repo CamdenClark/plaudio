@@ -1,13 +1,15 @@
 import React, { useContext } from "react";
-import { Grid, IconButton, Typography } from "@material-ui/core";
+import { Grid, IconButton, Link, Typography } from "@material-ui/core";
 import { PlayArrow, Pause, SkipNext, SkipPrevious } from "@material-ui/icons";
 import { makeStyles } from "@material-ui/core/styles";
+import { Link as RouterLink } from "react-router-dom";
 
 import { AudioServiceContext } from "../Audio";
 
 const useStyles = makeStyles((theme) => ({
   footer: {
     backgroundColor: theme.palette.background.paper,
+    zIndex: 100,
     borderTop: "1px solid " + theme.palette.grey[300],
     bottom: 0,
     position: "fixed",
@@ -43,7 +45,15 @@ const MemoizedAudioFooter = React.memo(
               <Typography noWrap>{sound.text}</Typography>
             </Grid>
             <Grid item style={{ maxWidth: "80%" }}>
-              <Typography noWrap>user {sound.displayName}</Typography>
+              <Typography noWrap>
+                <Link
+                  color="textPrimary"
+                  component={RouterLink}
+                  to={`/users/${sound.displayName.replace(" ", "_")}`}
+                >
+                  user {sound.displayName}
+                </Link>
+              </Typography>
             </Grid>
           </Grid>
           <Grid

@@ -6,6 +6,7 @@ import { AudioServiceContext } from "../components/Audio";
 import { SoundCard } from "../components/Sound";
 
 import { useHistory } from "react-router-dom";
+import { Sound } from "@plaudio/common";
 
 const useStyles = makeStyles((theme) => ({
   main: {
@@ -17,9 +18,7 @@ const useStyles = makeStyles((theme) => ({
 export function PlayerPage() {
   const classes = useStyles();
   const history = useHistory();
-  const { loadSounds, sound, queue, queuePosition } = useContext(
-    AudioServiceContext
-  );
+  const { loadSounds, sound, queue } = useContext(AudioServiceContext);
 
   useEffect(() => {
     if (!sound) {
@@ -38,8 +37,13 @@ export function PlayerPage() {
       <Grid container direction="row" justify="center" alignItems="center">
         <Grid item xs={12} sm={11}>
           {queue.map(
-            (sound: any, i: number) =>
-              sound && <SoundCard sound={sound} active={i === queuePosition} />
+            (listSound: Sound, i: number) =>
+              listSound && (
+                <SoundCard
+                  sound={listSound}
+                  active={listSound.soundId === sound?.soundId}
+                />
+              )
           )}
         </Grid>
       </Grid>

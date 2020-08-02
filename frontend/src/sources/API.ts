@@ -4,13 +4,15 @@ import { UserSound } from "../models/Sound";
 import { Favorite, Sound, SoundStatus } from "@plaudio/common";
 import { User } from "../models/User";
 
+import firebase from "firebase";
+
 const baseURL = process.env.REACT_APP_API_URL;
 
 export interface IAPI {
   getFavorite(soundId: string): Promise<Favorite>;
   favorite(soundId: string, score: number): Promise<void>;
   submit(sound: Partial<Sound>): Promise<Sound>;
-  loadMySounds(): Promise<Sound[]>;
+  loadProfileSounds(displayName: string): Promise<Sound[]>;
   loadSounds(page: number): Promise<Sound[]>;
   loadSound(soundId: string): Promise<Sound>;
   upload(file: File): Promise<AudioFile>;
@@ -90,7 +92,7 @@ export class MockAPI implements IAPI {
     });
   }
 
-  loadMySounds(): Promise<Sound[]> {
+  loadProfileSounds(displayName: string): Promise<Sound[]> {
     return new Promise((resolve) => {
       resolve(sounds);
     });
@@ -134,17 +136,10 @@ export class RealAPI implements IAPI {
     baseURL,
   });
 
-  user?: firebase.User;
-
-  constructor(user?: firebase.User) {
-    if (user) {
-      this.user = user;
-    }
-  }
-
   async getIdToken() {
-    if (this.user) {
-      return await this.user.getIdToken();
+    const { currentUser } = firebase.auth();
+    if (currentUser) {
+      return currentUser.getIdToken();
     }
     return "";
   }
@@ -209,9 +204,12 @@ export class RealAPI implements IAPI {
     return response.data;
   }
 
-  async loadMySounds(): Promise<Sound[]> {
+  async loadProfileSounds(displayName: string): Promise<Sound[]> {
     const config = await this.getConfig();
-    const response = await this.client.get(`/users/me/sounds`, config);
+    const response = await this.client.get(
+      `/users/${displayName}/sounds`,
+      config
+    );
     return response.data;
   }
 
@@ -241,3 +239,5 @@ export class RealAPI implements IAPI {
     return response.data;
   }
 }
+
+export const api = new RealAPI();

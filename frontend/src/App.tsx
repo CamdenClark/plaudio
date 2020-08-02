@@ -6,7 +6,6 @@ import { lightGreen } from "@material-ui/core/colors";
 
 import { AudioFooter, Header } from "./components/Layout";
 
-import { RealAPI } from "./sources/API";
 import {
   AboutPage,
   ComposePage,
@@ -21,6 +20,8 @@ import { Auth } from "./components/User/context";
 import { AudioService, AudioServiceContext } from "./components/Audio";
 import { SnackbarProvider } from "./components/Snackbar";
 
+import { api } from "./sources/API";
+
 const Main = () => {
   return (
     <Router>
@@ -28,7 +29,7 @@ const Main = () => {
         style={{
           display: "flex",
           flexDirection: "column",
-          marginBottom: "10rem",
+          marginBottom: "12rem",
         }}
       >
         <AudioServiceContext.Consumer>
@@ -37,6 +38,9 @@ const Main = () => {
         <div style={{ flex: "1 0 auto" }}>
           <Switch>
             <Route path={`/profile`}>
+              <ProfilePage />
+            </Route>
+            <Route path={`/users/:displayName`}>
               <ProfilePage />
             </Route>
             <Route path={`/signup`}>
@@ -77,7 +81,6 @@ function App() {
   const firebase = useContext(FirebaseContext);
   const [auth, setAuth] = useState<Auth>({
     loggedIn: false,
-    api: new RealAPI(),
   });
 
   useEffect(() => {
@@ -85,14 +88,12 @@ function App() {
     const unsub = firebase?.auth.onAuthStateChanged((firebaseUser) => {
       console.log("Auth state changed");
       if (firebaseUser) {
-        const api = new RealAPI(firebaseUser);
         api.me().then((user) => {
-          setAuth({ api, firebaseUser, loggedIn: true, user });
+          setAuth({ loggedIn: true, user });
         });
       } else {
         console.log("Firebase user doesn't exist yet");
-        const api = new RealAPI();
-        setAuth({ loggedIn: false, api });
+        setAuth({ loggedIn: false });
       }
     });
     return unsub;
