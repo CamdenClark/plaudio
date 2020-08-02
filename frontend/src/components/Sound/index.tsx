@@ -24,8 +24,12 @@ import { SoundStatus, Sound } from "@plaudio/common";
 import { SnackbarContext } from "../Snackbar";
 
 import { api } from "../../sources/API";
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
 import { RootState } from "../../store";
+import {
+  getFavorite,
+  setFavorite,
+} from "../../features/favorites/favoriteSlice";
 
 type SoundCardProps = {
   sound: Sound;
@@ -59,10 +63,10 @@ const useStyles = makeStyles((theme) => ({
 
 export function SoundCard({ active, sound }: SoundCardProps) {
   const classes = useStyles({ active, sound });
-  const [favorite, setFavorite] = useState(0);
-  const [originalFavorite, setOriginalFavorite] = useState(0);
   const [anchorElement, setAnchorElement] = useState<Element | null>(null);
 
+  const dispatch = useDispatch();
+  const history = useHistory();
   const snackbar = useContext(SnackbarContext);
 
   const handleMenuOpen = (
@@ -75,9 +79,11 @@ export function SoundCard({ active, sound }: SoundCardProps) {
     setAnchorElement(null);
   };
 
-  const user = useSelector((state: RootState) => state.user);
+  const user = useSelector((state: RootState) => state.auth.user);
 
-  const history = useHistory();
+  const favorite = useSelector(
+    (state: RootState) => state.favorites[sound.soundId]
+  );
 
   const onReport = () => {
     if (sound) {
@@ -91,25 +97,24 @@ export function SoundCard({ active, sound }: SoundCardProps) {
     }
   };
 
-  const onFavorite = (newVote: number) => {
+  const onFavorite = (newScore: number) => {
     if (!user) {
       history.push(`/signin`);
       return;
     }
     if (sound) {
-      setFavorite(newVote);
-      api.favorite(sound.soundId, newVote);
+      dispatch(setFavorite(sound.soundId, newScore));
     }
   };
 
   useEffect(() => {
-    if (sound && user) {
-      api.getFavorite(sound.soundId).then((favorite) => {
-        setOriginalFavorite(favorite.score);
-        setFavorite(favorite.score);
-      });
+    if (sound && !favorite?.loaded && user) {
+      dispatch(getFavorite(sound.soundId));
     }
-  }, [sound, user]);
+  }, [favorite, sound, user]);
+
+  const score = favorite?.score || 0;
+  const oldScore = favorite?.oldScore || 0;
 
   return (
     <Grid
@@ -177,17 +182,17 @@ export function SoundCard({ active, sound }: SoundCardProps) {
         </Grid>
         <Grid container item alignItems="center" xs={6} sm={3}>
           <Typography style={{ fontWeight: "bold" }}>
-            {sound.favorites + (favorite - originalFavorite)}
+            {sound.favorites + (score - oldScore)}
           </Typography>
           <IconButton
-            aria-label={favorite === 1 ? "Remove favorite" : "Favorite"}
+            aria-label={score === 1 ? "Remove favorite" : "Favorite"}
             onClick={() => {
-              favorite === 1 ? onFavorite(0) : onFavorite(1);
+              score === 1 ? onFavorite(0) : onFavorite(1);
             }}
           >
             <Favorite
               className={
-                favorite === 1 ? classes.favoriteActive : classes.favorite
+                score === 1 ? classes.favoriteActive : classes.favorite
               }
             />
           </IconButton>

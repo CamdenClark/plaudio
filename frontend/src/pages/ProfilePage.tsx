@@ -12,7 +12,7 @@ import { useSelector } from "react-redux";
 import { RootState } from "../store";
 
 export const ProfilePage = () => {
-  const user = useSelector((state: RootState) => state.user);
+  const user = useSelector((state: RootState) => state.auth.user);
   const firebase = useContext(FirebaseContext);
   const history = useHistory();
   const { displayName } = useParams();

@@ -2,6 +2,7 @@ import { configureStore, Action } from "@reduxjs/toolkit";
 import { ThunkAction } from "redux-thunk";
 
 import user from "./features/user/userSlice";
+import favorites from "./features/favorites/favoriteSlice";
 
 /*
 
@@ -49,7 +50,10 @@ createReducer(
 */
 
 const store = configureStore({
-  reducer: user,
+  reducer: {
+    auth: user,
+    favorites,
+  },
 });
 export type RootState = ReturnType<typeof store.getState>;
 export type AppThunk = ThunkAction<void, RootState, unknown, Action<string>>;

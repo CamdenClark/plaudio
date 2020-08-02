@@ -33,7 +33,7 @@ export function ComposePage() {
   const [loadingFile, setLoadingFile] = useState(false);
   const [soundBiteModalOpen, setSoundBiteModalOpen] = useState(false);
 
-  const user = useSelector((state: RootState) => state.user);
+  const user = useSelector((state: RootState) => state.auth.user);
   const snackbar = useContext(SnackbarContext);
   const history = useHistory();
 
