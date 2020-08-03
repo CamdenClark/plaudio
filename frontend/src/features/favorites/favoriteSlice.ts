@@ -1,7 +1,6 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
 import { AppThunk } from "../../store";
-import { User, Favorite } from "@plaudio/common";
 import { api } from "../../sources/API";
 
 type StoreFavorite = {

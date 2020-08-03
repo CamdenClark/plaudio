@@ -111,7 +111,7 @@ export function SoundCard({ active, sound }: SoundCardProps) {
     if (sound && !favorite?.loaded && user) {
       dispatch(getFavorite(sound.soundId));
     }
-  }, [favorite, sound, user]);
+  }, [dispatch, favorite, sound, user]);
 
   const score = favorite?.score || 0;
   const oldScore = favorite?.oldScore || 0;

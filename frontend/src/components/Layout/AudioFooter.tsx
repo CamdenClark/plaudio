@@ -67,7 +67,7 @@ const MemoizedAudioFooter = React.memo(
           >
             <Grid item>
               <IconButton aria-label={"Previous"} onClick={onPrevious}>
-                <SkipPrevious style={{ fontSize: "3.5rem" }} />
+                <SkipPrevious style={{ fontSize: "3rem" }} />
               </IconButton>
             </Grid>
             <Grid item>
@@ -76,15 +76,15 @@ const MemoizedAudioFooter = React.memo(
                 onClick={audioState.playing ? onPause : onPlay}
               >
                 {audioState.playing ? (
-                  <Pause style={{ fontSize: "3.5rem" }} />
+                  <Pause style={{ fontSize: "3rem" }} />
                 ) : (
-                  <PlayArrow style={{ fontSize: "3.5rem" }} />
+                  <PlayArrow style={{ fontSize: "3rem" }} />
                 )}
               </IconButton>
             </Grid>
             <Grid item>
               <IconButton aria-label={"Next"} onClick={onNext}>
-                <SkipNext style={{ fontSize: "3.5rem" }} />
+                <SkipNext style={{ fontSize: "3rem" }} />
               </IconButton>
             </Grid>
           </Grid>
