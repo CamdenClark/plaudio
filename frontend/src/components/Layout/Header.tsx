@@ -38,10 +38,13 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-export const Header = ({ soundId }: { soundId: string | null }) => {
+export const Header = () => {
   const classes = useStyles();
   const history = useHistory();
   const loggedIn = useSelector((state: RootState) => state.auth.loggedIn);
+  const soundId = useSelector(
+    (state: RootState) => state.player.current?.soundId
+  );
 
   return (
     <AppBar position="static">

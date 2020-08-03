@@ -15,10 +15,11 @@ import {
   SignupPage,
 } from "./pages";
 import { FirebaseContext } from "./components/Firebase";
-import { AudioService, AudioServiceContext } from "./components/Audio";
 import { SnackbarProvider } from "./components/Snackbar";
 
 import { useDispatch } from "react-redux";
+
+import { AudioService } from "./features/player/service";
 import { fetchMe, logOut } from "./features/user/userSlice";
 
 const Main = () => {
@@ -31,9 +32,7 @@ const Main = () => {
           marginBottom: "12rem",
         }}
       >
-        <AudioServiceContext.Consumer>
-          {({ sound }) => <Header soundId={sound?.soundId} />}
-        </AudioServiceContext.Consumer>
+        <Header />
         <div style={{ flex: "1 0 auto" }}>
           <Switch>
             <Route path={`/profile`}>

@@ -3,6 +3,7 @@ import { ThunkAction } from "redux-thunk";
 
 import user from "./features/user/userSlice";
 import favorites from "./features/favorites/favoriteSlice";
+import player from "./features/player/playerSlice";
 
 /*
 
@@ -53,6 +54,7 @@ const store = configureStore({
   reducer: {
     auth: user,
     favorites,
+    player,
   },
 });
 export type RootState = ReturnType<typeof store.getState>;
