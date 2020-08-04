@@ -34,6 +34,7 @@ import {
 type SoundCardProps = {
   sound: Sound;
   active?: boolean;
+  enqueue?: any;
 };
 
 const useStyles = makeStyles((theme) => ({
@@ -61,7 +62,7 @@ const useStyles = makeStyles((theme) => ({
   }),
 }));
 
-export function SoundCard({ active, sound }: SoundCardProps) {
+export function SoundCard({ active, enqueue, sound }: SoundCardProps) {
   const classes = useStyles({ active, sound });
   const [anchorElement, setAnchorElement] = useState<Element | null>(null);
 
@@ -123,6 +124,7 @@ export function SoundCard({ active, sound }: SoundCardProps) {
       justify="flex-start"
       alignItems="flex-start"
       className={classes.container}
+      onClick={enqueue}
     >
       {active || sound.status !== SoundStatus.Active ? (
         <Grid container item xs={2} sm={1}>

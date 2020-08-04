@@ -21,19 +21,15 @@ const player = createSlice({
   name: "player",
   initialState: playerInitialState,
   reducers: {
-    setQueue(state, { payload }: PayloadAction<Sound[]>) {
+    setQueue(
+      state,
+      {
+        payload,
+      }: PayloadAction<{ history: Sound[]; queue: Sound[]; current: Sound }>
+    ) {
       if (payload) {
-        let { history } = state;
-        if (state.current) {
-          history.push(state.current);
-        }
-        const existingSoundIds = new Set(
-          [...history, ...state.queue].map((sound) => sound.soundId)
-        );
-        const [current, ...queue] = payload.filter(
-          (sound) => !existingSoundIds.has(sound.soundId)
-        );
-        return { ...state, current, queue, history };
+        const { current, history, queue } = payload;
+        return { ...state, current, history, queue };
       }
     },
     addToQueue(state, { payload }: PayloadAction<Sound[]>) {

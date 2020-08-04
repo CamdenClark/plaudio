@@ -9,6 +9,7 @@ import { Sound } from "@plaudio/common";
 import { useDispatch, useSelector } from "react-redux";
 import { getTopSounds, getSound } from "../features/playlists/playlistSlice";
 import { RootState } from "../store";
+import { setQueue } from "../features/player/playerSlice";
 
 const useStyles = makeStyles((theme) => ({
   main: {
@@ -25,7 +26,23 @@ export function PlayerPage() {
   const history = useSelector((state: RootState) => state.player.history);
   const dispatch = useDispatch();
 
-  const allSounds = [...history, sound, ...queue];
+  let allSounds;
+
+  if (sound) {
+    allSounds = [...history, sound, ...queue];
+  } else {
+    allSounds = [...history, ...queue];
+  }
+
+  const enqueueBySoundId: { [soundId: string]: any } = {};
+
+  for (let i = 0; i < allSounds.length; i++) {
+    const history = allSounds.slice(0, i);
+    const current = allSounds[i];
+    const queue = allSounds.slice(i + 1);
+    enqueueBySoundId[current.soundId] = () =>
+      dispatch(setQueue({ current, history, queue }));
+  }
 
   useEffect(() => {
     if (!sound && history.length === 0) {
@@ -50,6 +67,7 @@ export function PlayerPage() {
               listSound && (
                 <SoundCard
                   key={listSound.soundId}
+                  enqueue={enqueueBySoundId[listSound.soundId]}
                   sound={listSound}
                   active={listSound.soundId === sound?.soundId}
                 />
