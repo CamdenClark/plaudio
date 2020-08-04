@@ -4,6 +4,7 @@ import { ThunkAction } from "redux-thunk";
 import user from "./features/user/userSlice";
 import favorites from "./features/favorites/favoriteSlice";
 import player from "./features/player/playerSlice";
+import playlists from "./features/playlists/playlistSlice";
 
 /*
 
@@ -55,6 +56,7 @@ const store = configureStore({
     auth: user,
     favorites,
     player,
+    playlists,
   },
 });
 export type RootState = ReturnType<typeof store.getState>;

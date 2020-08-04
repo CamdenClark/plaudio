@@ -6,9 +6,8 @@ import { SoundCard } from "../components/Sound";
 
 import { useHistory } from "react-router-dom";
 import { Sound } from "@plaudio/common";
-import { api } from "../sources/API";
 import { useDispatch, useSelector } from "react-redux";
-import { setQueue } from "../features/player/playerSlice";
+import { getTopSounds, getSound } from "../features/playlists/playlistSlice";
 import { RootState } from "../store";
 
 const useStyles = makeStyles((theme) => ({
@@ -29,34 +28,18 @@ export function PlayerPage() {
   const allSounds = [...history, sound, ...queue];
 
   useEffect(() => {
-    const loadSounds = (next: boolean, soundId?: string) => {
-      if (soundId) {
-        api.loadSound(soundId).then((sound) => {
-          const existing = new Set(queue.map((s: Sound) => s.soundId));
-          if (!existing.has(sound.soundId)) {
-            dispatch(setQueue([sound, ...queue]));
-          }
-        });
+    if (!sound && history.length === 0) {
+      if (browserHistory.location.pathname === "/") {
+        dispatch(getTopSounds(true));
       } else {
-        api.loadSounds(0).then((sounds) => {
-          const existing = new Set(queue.map((s: Sound) => s.soundId));
-          const soundsToInsert = sounds.filter((s) => !existing.has(s.soundId));
-          dispatch(setQueue([...queue, ...soundsToInsert]));
-        });
-      }
-    };
-
-    if (!sound) {
-      if (browserHistory.location.pathname === "/" || history.length !== 0) {
-        loadSounds(false);
-      } else {
-        loadSounds(false, browserHistory.location.pathname.substr(1));
+        dispatch(getSound(browserHistory.location.pathname.substr(1), true));
       }
     } else {
-      browserHistory.push(`/${sound.soundId}`);
+      if (sound) {
+        browserHistory.push(`/${sound.soundId}`);
+      }
     }
-  }, [browserHistory, dispatch, history, queue, sound]);
-  console.log("Render player page");
+  }, [browserHistory, dispatch, history, sound]);
 
   return (
     <Container className={classes.main}>
@@ -66,6 +49,7 @@ export function PlayerPage() {
             (listSound?: Sound) =>
               listSound && (
                 <SoundCard
+                  key={listSound.soundId}
                   sound={listSound}
                   active={listSound.soundId === sound?.soundId}
                 />

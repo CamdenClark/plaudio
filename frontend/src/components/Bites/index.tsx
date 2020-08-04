@@ -80,7 +80,12 @@ export const BitesModal = ({ addBite, handleClose, open }: any) => {
         />
         <Grid container>
           {searchResults.map((bite) => (
-            <BiteRow bite={bite} onPlay={onPlay} addBite={addBite} />
+            <BiteRow
+              key={bite.name}
+              bite={bite}
+              onPlay={onPlay}
+              addBite={addBite}
+            />
           ))}
         </Grid>
       </DialogContent>

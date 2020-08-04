@@ -36,6 +36,23 @@ const player = createSlice({
         return { ...state, current, queue, history };
       }
     },
+    addToQueue(state, { payload }: PayloadAction<Sound[]>) {
+      if (payload) {
+        let existingSoundIds = new Set(
+          [...state.history, ...state.queue].map((sound) => sound.soundId)
+        );
+        if (state.current) {
+          existingSoundIds.add(state.current.soundId);
+          state.queue = state.queue.concat(
+            payload.filter((sound) => !existingSoundIds.has(sound.soundId))
+          );
+        } else {
+          const [current, ...queue] = payload;
+          state.current = current;
+          state.queue = queue;
+        }
+      }
+    },
     next(state) {
       let { history, current, queue } = state;
 
@@ -65,6 +82,7 @@ const player = createSlice({
 });
 
 export const {
+  addToQueue,
   next,
   pause,
   play,

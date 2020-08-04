@@ -1,17 +1,16 @@
-import React, { useContext, useState, useEffect } from "react";
+import React, { useContext, useEffect } from "react";
 import { Container, Grid, Button, Typography } from "@material-ui/core";
 
 import { FirebaseContext } from "../components/Firebase";
 import { SoundCard } from "../components/Sound";
-import { api } from "../sources/API";
-
-import { Sound } from "@plaudio/common";
 
 import { useHistory, useParams } from "react-router-dom";
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
 import { RootState } from "../store";
+import { getUserSounds } from "../features/playlists/playlistSlice";
 
 export const ProfilePage = () => {
+  const dispatch = useDispatch();
   const user = useSelector((state: RootState) => state.auth.user);
   const firebase = useContext(FirebaseContext);
   const history = useHistory();
@@ -19,15 +18,15 @@ export const ProfilePage = () => {
 
   const name = displayName ? displayName : user?.name.replace(" ", "_");
 
-  const [sounds, setSounds] = useState([] as Sound[]);
+  const sounds = useSelector(
+    (state: RootState) => name && state.playlists.users[name]?.sounds
+  );
 
   useEffect(() => {
-    if (name) {
-      api.loadProfileSounds(name).then((snds) => {
-        setSounds(snds);
-      });
+    if (name && !sounds) {
+      dispatch(getUserSounds(name));
     }
-  }, [name]);
+  }, [dispatch, name, sounds]);
 
   return (
     <Container>
@@ -65,9 +64,10 @@ export const ProfilePage = () => {
             </Grid>
           )}
           <Grid item xs={12} style={{ marginTop: "1rem" }}>
-            {sounds.map((sound) => (
-              <SoundCard key={sound.soundId} sound={sound} />
-            ))}
+            {sounds &&
+              sounds.map((sound) => (
+                <SoundCard key={sound.soundId} sound={sound} />
+              ))}
           </Grid>
         </Grid>
       </Grid>

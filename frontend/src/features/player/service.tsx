@@ -60,8 +60,6 @@ export const AudioService = (props: any) => {
     }
   }, [current, playing, sound]);
 
-  console.log("Rerender");
-
   return (
     <>
       <audio ref={player} />
