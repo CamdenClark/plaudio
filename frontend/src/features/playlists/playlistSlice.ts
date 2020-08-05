@@ -32,7 +32,6 @@ const playlist = createSlice({
     },
     getSoundSuccess(state, { payload }: PayloadAction<Sound>) {
       if (payload) {
-        console.log(payload);
         state.top.sounds.push(payload);
       }
     },
