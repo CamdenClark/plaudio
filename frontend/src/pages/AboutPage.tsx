@@ -22,8 +22,8 @@ export const AboutPage = () => (
         <Typography style={{ marginTop: "1rem" }}>
           plaud.io is a website where you can hear and say what matters. We take
           your text and convert it to audio, along with your audio clips and
-          sound bites, and everyone votes on what's best. We can't wait to hear
-          what you have to say!
+          sound bites (like sound emojis). We can't wait to hear what you have
+          to say!
         </Typography>
 
         <br />
